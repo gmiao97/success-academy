@@ -92,5 +92,5 @@ const termsOfUse = [
   'info@mercy-education.com',
   '2020.03制定',
   '2020.08改訂',
-  '2025.03改訂'
+  '2025.03改訂',
 ];
