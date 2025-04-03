@@ -133,9 +133,9 @@ class _CreateSubscriptionFormState extends State<CreateSubscriptionForm> {
               ),
               onChanged: (value) {
                 setState(() {
-                  if (value == freeSignUpFeeCode) {
+                  if (freeSignUpFeeCodes.contains(value)) {
                     _referralType = referralTypeFree;
-                  } else if (value == fiftyOffSignUpFeeCode) {
+                  } else if (fiftyOffSignUpFeeCodes.contains(value)) {
                     _referralType = referralType50;
                   } else if (_validCodes.contains(value) &&
                       account.myUser!.referralCode != value) {
