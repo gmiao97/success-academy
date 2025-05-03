@@ -81,19 +81,39 @@ Future<List<TeacherProfileModel>> getAllTeacherProfiles() async => (await _db
     .toList();
 
 /// Get all student profiles
-Future<List<StudentProfileModel>> getAllStudentProfiles() async => (await _db
-        .collectionGroup('student_profiles')
-        .withConverter<StudentProfileModel>(
-          fromFirestore: (doc, _) => StudentProfileModel.fromFirestoreJson(
-            doc.id,
-            doc.data()!,
-          ),
-          toFirestore: (profileModel, _) => profileModel.toFirestoreJson(),
-        )
-        .get())
-    .docs
-    .map(((e) => e.data()))
-    .toList();
+Future<List<StudentProfileModel>> getStudentProfiles(
+  List<String> studentProfileIds,
+) async {
+  final result = await _db
+      .collectionGroup('student_profiles')
+      .withConverter<StudentProfileModel>(
+        fromFirestore: (doc, _) => StudentProfileModel.fromFirestoreJson(
+          doc.id,
+          doc.data()!,
+        ),
+        toFirestore: (profileModel, _) => profileModel.toFirestoreJson(),
+      )
+      .get();
+  return result.docs
+      .where((e) => studentProfileIds.contains(e.id))
+      .map(((e) => e.data()))
+      .toList();
+}
+
+/// Get all student profiles
+Future<List<StudentProfileModel>> getAllStudentProfiles() async {
+  final result = await _db
+      .collectionGroup('student_profiles')
+      .withConverter<StudentProfileModel>(
+        fromFirestore: (doc, _) => StudentProfileModel.fromFirestoreJson(
+          doc.id,
+          doc.data()!,
+        ),
+        toFirestore: (profileModel, _) => profileModel.toFirestoreJson(),
+      )
+      .get();
+  return result.docs.map(((e) => e.data())).toList();
+}
 
 /// Check if saved profile in local storage belongs to user
 Future<bool> studentProfileBelongsToUser({

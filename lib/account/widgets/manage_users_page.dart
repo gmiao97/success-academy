@@ -9,6 +9,8 @@ import 'package:success_academy/constants.dart';
 import 'package:success_academy/generated/l10n.dart';
 import 'package:success_academy/helpers/tz_date_time.dart';
 import 'package:success_academy/profile/data/profile_model.dart';
+import 'package:success_academy/profile/services/profile_service.dart'
+    as profile_service;
 import 'package:timezone/data/latest_10y.dart' as tz show initializeTimeZones;
 import 'package:timezone/timezone.dart' as tz show getLocation;
 import 'package:timezone/timezone.dart' show TZDateTime;
@@ -249,7 +251,13 @@ class _StudentTableState extends State<_StudentTable> {
   @override
   void initState() {
     super.initState();
-    _studentProfiles.addAll(context.read<AccountModel>().studentProfileList);
+    _loadStudentProfiles();
+  }
+
+  Future<void> _loadStudentProfiles() async {
+    _studentProfiles.addAll(
+      await profile_service.getAllStudentProfiles(),
+    );
   }
 
   Iterable<Widget> _getSuggestions(SearchController controller) {

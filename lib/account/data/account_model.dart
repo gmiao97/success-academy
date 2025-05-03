@@ -35,8 +35,6 @@ class AccountModel extends ChangeNotifier {
   StudentProfileModel? _studentProfile;
   TeacherProfileModel? _teacherProfile;
   AdminProfileModel? _adminProfile;
-  late List<StudentProfileModel> _studentProfileList;
-  late Map<String, StudentProfileModel> _studentProfileMap;
   late List<TeacherProfileModel> _teacherProfileList;
   late Map<String, TeacherProfileModel> _teacherProfileMap;
   List<QueryDocumentSnapshot<Object?>> _subscriptionDocs = [];
@@ -55,8 +53,6 @@ class AccountModel extends ChangeNotifier {
   StudentProfileModel? get studentProfile => _studentProfile;
   TeacherProfileModel? get teacherProfile => _teacherProfile;
   AdminProfileModel? get adminProfile => _adminProfile;
-  List<StudentProfileModel> get studentProfileList => _studentProfileList;
-  Map<String, StudentProfileModel> get studentProfileMap => _studentProfileMap;
   List<TeacherProfileModel> get teacherProfileList => _teacherProfileList;
   Map<String, TeacherProfileModel> get teacherProfileModelMap =>
       _teacherProfileMap;
@@ -140,9 +136,6 @@ class AccountModel extends ChangeNotifier {
   /// collection, and profile data from shared preferences if existing.
   Future<void> _initAccount(User firebaseUser) async {
     _firebaseUser = firebaseUser;
-    _studentProfileList = await profile_service.getAllStudentProfiles();
-    _studentProfileMap =
-        StudentProfileModel.buildStudentProfileMap(_studentProfileList);
     _teacherProfileList = await profile_service.getAllTeacherProfiles();
     _teacherProfileMap =
         TeacherProfileModel.buildTeacherProfileMap(_teacherProfileList);

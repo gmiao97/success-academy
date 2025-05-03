@@ -87,16 +87,6 @@ class StudentProfileModel {
         'num_points': numPoints,
         'referrer': referrer,
       };
-
-  static Map<String, StudentProfileModel> buildStudentProfileMap(
-    List<StudentProfileModel> studentProfileList,
-  ) {
-    final map = Map<String, StudentProfileModel>.fromIterable(
-      studentProfileList,
-      key: (profile) => profile._profileId,
-    );
-    return map;
-  }
 }
 
 class TeacherProfileModel {

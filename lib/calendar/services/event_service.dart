@@ -5,7 +5,7 @@ import 'package:success_academy/calendar/data/event_model.dart';
 import 'package:success_academy/helpers/tz_date_time.dart';
 import 'package:timezone/timezone.dart' show Location;
 
-const isDev = kDebugMode;
+const isDev = false;
 
 final Logger _logger = Logger();
 final FirebaseFunctions _functions =
