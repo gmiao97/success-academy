@@ -43,9 +43,12 @@ class _ViewEventDialogState extends State<ViewEventDialog> {
   Future<void> _loadProfiles() async {
     final account = context.read<AccountModel>();
     _teacher = account.teacherProfileModelMap[widget.event.teacherId];
-    _students = await profile_service.getStudentProfiles(
+    final students = await profile_service.getStudentProfiles(
       widget.event.studentIdList,
     );
+    setState(() {
+      _students = students;
+    });
   }
 
   Future<void> _loadRecurrenceEvent() async {
