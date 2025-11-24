@@ -1,5 +1,6 @@
 import 'package:editable/editable.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:success_academy/lesson_info/services/lesson_info_service.dart'
     as lesson_info_service;
@@ -35,7 +36,7 @@ class _LessonInfoPageState extends State<LessonInfoPage> {
     });
   }
 
-  Widget _getZoomInfoTable(
+  Widget _getZoomInfoView(
     UserType userType,
     SubscriptionPlan? subscriptionPlan,
   ) {
@@ -47,7 +48,7 @@ class _LessonInfoPageState extends State<LessonInfoPage> {
     if (userType == UserType.teacher ||
         (subscriptionPlan != null &&
             subscriptionPlan != SubscriptionPlan.monthly)) {
-      return ZoomInfo(
+      return CleanZoomInfo(
         zoomInfo: _zoomInfo,
       );
     }
@@ -69,17 +70,20 @@ class _LessonInfoPageState extends State<LessonInfoPage> {
           ),
         ),
         Expanded(
-          child: Card(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        FilledButton.tonalIcon(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // クリーンなボタンエリア
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _CleanActionButton(
+                          icon: Icons.calendar_month,
+                          label: S.of(context).freeLessonTimeTable,
+                          color: const Color(0xFF5B8DEE), // 落ち着いた青
                           onPressed: () async {
                             if (!await launchUrl(
                               Uri.parse(
@@ -98,10 +102,14 @@ class _LessonInfoPageState extends State<LessonInfoPage> {
                               }
                             }
                           },
-                          label: Text(S.of(context).freeLessonTimeTable),
-                          icon: const Icon(Icons.exit_to_app),
                         ),
-                        FilledButton.tonalIcon(
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _CleanActionButton(
+                          icon: Icons.menu_book,
+                          label: S.of(context).freeLessonMaterials,
+                          color: const Color(0xFFFF8C42), // 落ち着いたオレンジ
                           onPressed: () async {
                             if (!await launchUrl(
                               Uri.parse(
@@ -120,20 +128,23 @@ class _LessonInfoPageState extends State<LessonInfoPage> {
                               }
                             }
                           },
-                          label: Text(S.of(context).freeLessonMaterials),
-                          icon: const Icon(Icons.exit_to_app),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  !_zoomInfoLoaded
-                      ? const CircularProgressIndicator()
-                      : _getZoomInfoTable(
+                ),
+                
+                // Zoom情報
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: !_zoomInfoLoaded
+                      ? const Center(child: CircularProgressIndicator())
+                      : _getZoomInfoView(
                           account.userType,
                           account.subscriptionPlan,
                         ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -142,6 +153,464 @@ class _LessonInfoPageState extends State<LessonInfoPage> {
   }
 }
 
+// クリーンでシンプルなアクションボタン
+class _CleanActionButton extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onPressed;
+
+  const _CleanActionButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onPressed,
+  });
+
+  @override
+  State<_CleanActionButton> createState() => _CleanActionButtonState();
+}
+
+class _CleanActionButtonState extends State<_CleanActionButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        height: 120,
+        decoration: BoxDecoration(
+          color: _isHovered 
+              ? widget.color.withOpacity(0.08) 
+              : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: _isHovered 
+                ? widget.color 
+                : widget.color.withOpacity(0.3),
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.onPressed,
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    widget.icon,
+                    size: 40,
+                    color: widget.color,
+                  ),
+                  const SizedBox(height: 10),
+                  Flexible(
+                    child: Text(
+                      widget.label,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[800],
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// クリーンなZoom情報表示
+class CleanZoomInfo extends StatelessWidget {
+  final List<LessonModel> zoomInfo;
+
+  const CleanZoomInfo({
+    super.key,
+    required this.zoomInfo,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 20.0),
+          child: Text(
+            S.of(context).freeLessonZoomInfo,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[800],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        ...zoomInfo.map((lesson) => _CleanLessonCard(lesson: lesson)).toList(),
+      ],
+    );
+  }
+}
+
+// クリーンなレッスンカード
+class _CleanLessonCard extends StatefulWidget {
+  final LessonModel lesson;
+
+  const _CleanLessonCard({required this.lesson});
+
+  @override
+  State<_CleanLessonCard> createState() => _CleanLessonCardState();
+}
+
+class _CleanLessonCardState extends State<_CleanLessonCard> {
+  bool _isHovered = false;
+
+  void _copyToClipboard(BuildContext context, String text, String label) {
+    Clipboard.setData(ClipboardData(text: text));
+    final locale = context.read<AccountModel>().locale;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text(locale == 'ja' ? '$labelをコピーしました' : '$label copied'),
+          ],
+        ),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF4CAF50),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: _isHovered 
+                ? const Color(0xFF5B8DEE).withOpacity(0.3) 
+                : Colors.grey[300]!,
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // レッスン名ヘッダー
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F7FA),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF5B8DEE),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.school,
+                        size: 24,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        widget.lesson.name,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Zoom参加ボタン（クリーンバージョン）
+              Container(
+                height: 56,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4CAF50),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF4CAF50).withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () async {
+                      if (!await launchUrl(Uri.parse(widget.lesson.zoomLink))) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: Theme.of(context).colorScheme.error,
+                              content: Text(S.of(context).openLinkFailure),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.video_call,
+                            size: 26,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 10),
+                          Builder(
+                            builder: (context) {
+                              final locale = context.select<AccountModel, String>((a) => a.locale);
+                              return Text(
+                                locale == 'ja' ? 'Zoomに参加する' : 'Join Zoom',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // 情報セクション
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F7FA),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.info_outline, 
+                          color: const Color(0xFF5B8DEE), 
+                          size: 20
+                        ),
+                        const SizedBox(width: 8),
+                        Builder(
+                          builder: (context) {
+                            final locale = context.select<AccountModel, String>((a) => a.locale);
+                            return Text(
+                              locale == 'ja' ? 'レッスン情報' : 'Lesson Information',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[700],
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ミーティングID
+                    Builder(
+                      builder: (context) {
+                        final locale = context.select<AccountModel, String>((a) => a.locale);
+                        return _CleanInfoRow(
+                          label: locale == 'ja' ? 'ミーティングID' : 'Meeting ID',
+                          value: widget.lesson.zoomId,
+                          icon: Icons.tag,
+                          color: const Color(0xFF7C4DFF),
+                          onCopy: () => _copyToClipboard(
+                            context,
+                            widget.lesson.zoomId,
+                            locale == 'ja' ? 'ミーティングID' : 'Meeting ID',
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+
+                    // パスワード
+                    Builder(
+                      builder: (context) {
+                        final locale = context.select<AccountModel, String>((a) => a.locale);
+                        return _CleanInfoRow(
+                          label: locale == 'ja' ? 'パスワード' : 'Password',
+                          value: widget.lesson.zoomPassword,
+                          icon: Icons.lock_outline,
+                          color: const Color(0xFFFF8C42),
+                          onCopy: () => _copyToClipboard(
+                            context,
+                            widget.lesson.zoomPassword,
+                            locale == 'ja' ? 'パスワード' : 'Password',
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// クリーンな情報行
+class _CleanInfoRow extends StatefulWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onCopy;
+
+  const _CleanInfoRow({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+    required this.onCopy,
+  });
+
+  @override
+  State<_CleanInfoRow> createState() => _CleanInfoRowState();
+}
+
+class _CleanInfoRowState extends State<_CleanInfoRow> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: _isHovered 
+                ? widget.color.withOpacity(0.4) 
+                : Colors.grey[300]!,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: widget.color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(widget.icon, size: 20, color: widget.color),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.value,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[800],
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: widget.color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: IconButton(
+                onPressed: widget.onCopy,
+                icon: Icon(Icons.content_copy, size: 18),
+                tooltip: 'コピー',
+                color: widget.color,
+                padding: const EdgeInsets.all(8),
+                constraints: const BoxConstraints(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// 従来のテーブル表示（参考用に残す）
 class ZoomInfo extends StatelessWidget {
   final List<LessonModel> zoomInfo;
 
@@ -304,7 +773,6 @@ class EditableZoomInfo extends StatelessWidget {
           child: Editable(
             columns: headers,
             rows: zoomInfo.map((lesson) => lesson.toJson()).toList(),
-            // showCreateButton: true,
             showSaveIcon: true,
             saveIconColor: Theme.of(context).primaryColor,
             onRowSaved: (value) async {
