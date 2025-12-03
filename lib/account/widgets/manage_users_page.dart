@@ -1,53 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:success_academy/helpers/tz_date_time_range.dart';
+import 'package:success_academy/account/data/account_model.dart';
+import 'package:success_academy/calendar/calendar_utils.dart';
+import 'package:success_academy/calendar/data/event_model.dart';
+import 'package:success_academy/calendar/data/events_data_source.dart';
+import 'package:success_academy/constants.dart';
+import 'package:success_academy/generated/l10n.dart';
+import 'package:success_academy/helpers/tz_date_time.dart';
+import 'package:success_academy/profile/data/profile_model.dart';
+import 'package:success_academy/profile/services/profile_service.dart'
+    as profile_service;
 import 'package:timezone/data/latest_10y.dart' as tz show initializeTimeZones;
 import 'package:timezone/timezone.dart' as tz show getLocation;
 import 'package:timezone/timezone.dart' show TZDateTime;
 
-import '../../calendar/calendar_utils.dart';
-import '../../calendar/data/event_model.dart';
-import '../../calendar/services/event_service.dart' as event_service;
-import '../../constants.dart';
-import '../../generated/l10n.dart';
-import '../../profile/data/profile_model.dart';
-import '../data/account_model.dart';
-
-class ManageUsersPage extends StatefulWidget {
+class ManageUsersPage extends StatelessWidget {
   const ManageUsersPage({super.key});
 
   @override
-  State<ManageUsersPage> createState() => _ManageUsersPageState();
+  Widget build(BuildContext context) => ChangeNotifierProvider(
+        create: (context) => EventsDataSource(),
+        child: _ManageUsersPage(),
+      );
 }
 
-class _ManageUsersPageState extends State<ManageUsersPage> {
+class _ManageUsersPage extends StatefulWidget {
+  @override
+  State<_ManageUsersPage> createState() => _ManageUsersPageState();
+}
+
+class _ManageUsersPageState extends State<_ManageUsersPage> {
+  late final EventsDataSource _eventsDataSource;
   final List<bool> _selectedToggle = [true, false];
-  List<EventModel> _events = [];
+  final List<EventModel> _events = [];
   late TZDateTimeRange _dateRange;
 
   @override
   void initState() {
     super.initState();
     tz.initializeTimeZones();
-    _init();
   }
 
-  void _init() async {
+  @override
+  Future<void> didChangeDependencies() async {
+    super.didChangeDependencies();
     final location =
         tz.getLocation(context.read<AccountModel>().myUser!.timeZone);
+    _eventsDataSource = context.watch<EventsDataSource>();
     _dateRange = TZDateTimeRange(
       start: TZDateTime.now(location).subtract(const Duration(days: 30)),
       end: TZDateTime.now(location),
     );
-    _events = await event_service.listEvents(
-      location: location,
-      dateTimeRange: _dateRange,
-      singleEvents: true,
+    _events.addAll(
+      await _eventsDataSource.loadDataByKey(
+        _dateRange,
+      ),
     );
   }
 
-  void _selectDateRange() async {
+  Future<void> _selectDateRange() async {
     final location =
         tz.getLocation(context.read<AccountModel>().myUser!.timeZone);
 
@@ -59,84 +71,79 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
     if (dateRange != null) {
       final start = TZDateTime.from(dateRange.start, location);
       final end = TZDateTime.from(dateRange.end, location);
-      await event_service
-          .listEvents(
-            location: location,
-            dateTimeRange: TZDateTimeRange(
-              start: start,
-              end: end,
-            ),
-            singleEvents: true,
-          )
-          .then(
-            (events) => setState(
-              () {
-                _dateRange = TZDateTimeRange(start: start, end: end);
-                _events = events;
-              },
-            ),
-          );
+      final events = await _eventsDataSource.loadDataByKey(
+        TZDateTimeRange(
+          start: start,
+          end: end,
+        ),
+      );
+      setState(
+        () {
+          _dateRange = TZDateTimeRange(start: start, end: end);
+          _events
+            ..clear()
+            ..addAll(events);
+        },
+      );
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        OverflowBar(
-          alignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Text(
-                S.of(context).manageProfile,
-                style: Theme.of(context).textTheme.displaySmall,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: ToggleButtons(
-                onPressed: (index) {
-                  setState(() {
-                    for (int i = 0; i < _selectedToggle.length; i++) {
-                      _selectedToggle[i] = i == index;
-                    }
-                  });
-                },
-                borderRadius: const BorderRadius.all(Radius.circular(8)),
-                constraints: const BoxConstraints(
-                  minHeight: 40,
-                  minWidth: 80,
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          OverflowBar(
+            alignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Text(
+                  S.of(context).manageProfile,
+                  style: Theme.of(context).textTheme.displaySmall,
                 ),
-                isSelected: _selectedToggle,
-                children: [
-                  Text(S.of(context).student),
-                  Text(S.of(context).teacher),
-                ],
               ),
-            ),
-          ],
-        ),
-        Expanded(
-          child: Card(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: _selectedToggle[0]
-                    ? _StudentTable()
-                    : _TeacherTable(
-                        dateRange: _dateRange,
-                        onSelectDateRange: _selectDateRange,
-                        events: _events,
-                      ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: ToggleButtons(
+                  onPressed: (index) {
+                    setState(() {
+                      for (var i = 0; i < _selectedToggle.length; i++) {
+                        _selectedToggle[i] = i == index;
+                      }
+                    });
+                  },
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                  constraints: const BoxConstraints(
+                    minHeight: 40,
+                    minWidth: 80,
+                  ),
+                  isSelected: _selectedToggle,
+                  children: [
+                    Text(S.of(context).student),
+                    Text(S.of(context).teacher),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          Expanded(
+            child: Card(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: _selectedToggle[0]
+                      ? _StudentTable()
+                      : _TeacherTable(
+                          dateRange: _dateRange,
+                          onSelectDateRange: _selectDateRange,
+                          events: _events,
+                        ),
+                ),
               ),
             ),
           ),
-        ),
-      ],
-    );
-  }
+        ],
+      );
 }
 
 class _TeacherTable extends StatelessWidget {
@@ -244,7 +251,13 @@ class _StudentTableState extends State<_StudentTable> {
   @override
   void initState() {
     super.initState();
-    _studentProfiles.addAll(context.read<AccountModel>().studentProfileList);
+    _loadStudentProfiles();
+  }
+
+  Future<void> _loadStudentProfiles() async {
+    _studentProfiles.addAll(
+      await profile_service.getAllStudentProfiles(),
+    );
   }
 
   Iterable<Widget> _getSuggestions(SearchController controller) {
@@ -279,102 +292,100 @@ class _StudentTableState extends State<_StudentTable> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SearchAnchor(
-          builder: (context, controller) => SearchBar(
-            controller: controller,
-            padding: const MaterialStatePropertyAll<EdgeInsets>(
-              EdgeInsets.symmetric(horizontal: 16.0),
+  Widget build(BuildContext context) => Column(
+        children: [
+          SearchAnchor(
+            builder: (context, controller) => SearchBar(
+              controller: controller,
+              padding: const WidgetStatePropertyAll<EdgeInsets>(
+                EdgeInsets.symmetric(horizontal: 16.0),
+              ),
+              hintText: S.of(context).searchEmail,
+              trailing: [
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
+                    controller.clear();
+                    setState(() {
+                      _searchEmail = null;
+                    });
+                  },
+                ),
+              ],
+              onTap: () {
+                controller.openView();
+              },
+              onChanged: (_) {
+                controller.openView();
+              },
+              leading: const Icon(Icons.search),
             ),
-            hintText: S.of(context).searchEmail,
-            trailing: [
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () {
-                  controller.clear();
-                  setState(() {
-                    _searchEmail = null;
-                  });
-                },
+            viewHintText: S.of(context).searchEmail,
+            viewTrailing: const [],
+            suggestionsBuilder: (context, controller) =>
+                _getSuggestions(controller),
+          ),
+          PaginatedDataTable(
+            columns: <DataColumn>[
+              DataColumn(
+                label: Expanded(
+                  child: Text(
+                    S.of(context).id,
+                    style: const TextStyle(fontStyle: FontStyle.italic),
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Expanded(
+                  child: Text(
+                    S.of(context).email,
+                    style: const TextStyle(fontStyle: FontStyle.italic),
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Expanded(
+                  child: Text(
+                    S.of(context).lastName,
+                    style: const TextStyle(fontStyle: FontStyle.italic),
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Expanded(
+                  child: Text(
+                    S.of(context).firstName,
+                    style: const TextStyle(fontStyle: FontStyle.italic),
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Expanded(
+                  child: Text(
+                    S.of(context).eventPointsLabel,
+                    style: const TextStyle(fontStyle: FontStyle.italic),
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Expanded(
+                  child: Text(
+                    S.of(context).referrerLabel,
+                    style: const TextStyle(fontStyle: FontStyle.italic),
+                  ),
+                ),
               ),
             ],
-            onTap: () {
-              controller.openView();
-            },
-            onChanged: (_) {
-              controller.openView();
-            },
-            leading: const Icon(Icons.search),
+            source: _StudentData(
+              data: _searchEmail?.isEmpty ?? true
+                  ? _studentProfiles
+                  : _studentProfiles
+                      .where((e) => e.email == _searchEmail)
+                      .toList(),
+            ),
           ),
-          viewHintText: S.of(context).searchEmail,
-          viewTrailing: const [],
-          suggestionsBuilder: (context, controller) =>
-              _getSuggestions(controller),
-        ),
-        PaginatedDataTable(
-          columns: <DataColumn>[
-            DataColumn(
-              label: Expanded(
-                child: Text(
-                  S.of(context).id,
-                  style: const TextStyle(fontStyle: FontStyle.italic),
-                ),
-              ),
-            ),
-            DataColumn(
-              label: Expanded(
-                child: Text(
-                  S.of(context).email,
-                  style: const TextStyle(fontStyle: FontStyle.italic),
-                ),
-              ),
-            ),
-            DataColumn(
-              label: Expanded(
-                child: Text(
-                  S.of(context).lastName,
-                  style: const TextStyle(fontStyle: FontStyle.italic),
-                ),
-              ),
-            ),
-            DataColumn(
-              label: Expanded(
-                child: Text(
-                  S.of(context).firstName,
-                  style: const TextStyle(fontStyle: FontStyle.italic),
-                ),
-              ),
-            ),
-            DataColumn(
-              label: Expanded(
-                child: Text(
-                  S.of(context).eventPointsLabel,
-                  style: const TextStyle(fontStyle: FontStyle.italic),
-                ),
-              ),
-            ),
-            DataColumn(
-              label: Expanded(
-                child: Text(
-                  S.of(context).referrerLabel,
-                  style: const TextStyle(fontStyle: FontStyle.italic),
-                ),
-              ),
-            ),
-          ],
-          source: _StudentData(
-            data: _searchEmail?.isEmpty ?? true
-                ? _studentProfiles
-                : _studentProfiles
-                    .where((e) => e.email == _searchEmail)
-                    .toList(),
-          ),
-        ),
-      ],
-    );
-  }
+        ],
+      );
 }
 
 class _TeacherData extends DataTableSource {
@@ -482,16 +493,14 @@ class _StudentData extends DataTableSource {
   int get selectedRowCount => 0;
 
   @override
-  DataRow getRow(int index) {
-    return DataRow(
-      cells: [
-        DataCell(SelectableText(_data[index].profileId)),
-        DataCell(SelectableText(_data[index].email)),
-        DataCell(SelectableText(_data[index].lastName)),
-        DataCell(SelectableText(_data[index].firstName)),
-        DataCell(SelectableText('${_data[index].numPoints}')),
-        DataCell(SelectableText(_data[index].referrer ?? '')),
-      ],
-    );
-  }
+  DataRow getRow(int index) => DataRow(
+        cells: [
+          DataCell(SelectableText(_data[index].profileId)),
+          DataCell(SelectableText(_data[index].email)),
+          DataCell(SelectableText(_data[index].lastName)),
+          DataCell(SelectableText(_data[index].firstName)),
+          DataCell(SelectableText('${_data[index].numPoints}')),
+          DataCell(SelectableText(_data[index].referrer ?? '')),
+        ],
+      );
 }

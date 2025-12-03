@@ -7,12 +7,11 @@ import 'package:success_academy/account/services/account_service.dart'
     as shared_preferences_service;
 import 'package:success_academy/account/services/user_service.dart'
     as user_service;
+import 'package:success_academy/profile/data/profile_model.dart';
 import 'package:success_academy/profile/services/profile_service.dart'
     as profile_service;
 import 'package:success_academy/profile/services/purchase_service.dart'
     as stripe_service;
-
-import '../../profile/data/profile_model.dart';
 
 enum AuthStatus {
   signedIn,
@@ -36,8 +35,6 @@ class AccountModel extends ChangeNotifier {
   StudentProfileModel? _studentProfile;
   TeacherProfileModel? _teacherProfile;
   AdminProfileModel? _adminProfile;
-  late List<StudentProfileModel> _studentProfileList;
-  late Map<String, StudentProfileModel> _studentProfileMap;
   late List<TeacherProfileModel> _teacherProfileList;
   late Map<String, TeacherProfileModel> _teacherProfileMap;
   List<QueryDocumentSnapshot<Object?>> _subscriptionDocs = [];
@@ -56,8 +53,6 @@ class AccountModel extends ChangeNotifier {
   StudentProfileModel? get studentProfile => _studentProfile;
   TeacherProfileModel? get teacherProfile => _teacherProfile;
   AdminProfileModel? get adminProfile => _adminProfile;
-  List<StudentProfileModel> get studentProfileList => _studentProfileList;
-  Map<String, StudentProfileModel> get studentProfileMap => _studentProfileMap;
   List<TeacherProfileModel> get teacherProfileList => _teacherProfileList;
   Map<String, TeacherProfileModel> get teacherProfileModelMap =>
       _teacherProfileMap;
@@ -104,7 +99,7 @@ class AccountModel extends ChangeNotifier {
     _refreshSubscriptionData();
   }
 
-  void init() async {
+  Future<void> init() async {
     FirebaseAuth.instance.authStateChanges().listen((firebaseUser) async {
       _authStatus = AuthStatus.loading;
       notifyListeners();
@@ -137,15 +132,10 @@ class AccountModel extends ChangeNotifier {
     _locale = await shared_preferences_service.getLocale();
   }
 
-  /**
-   * Initialize account model with firebase user data, data from 'myUsers'
-   * collection, and profile data from shared preferences if existing.
-   */
+  /// Initialize account model with firebase user data, data from 'myUsers'
+  /// collection, and profile data from shared preferences if existing.
   Future<void> _initAccount(User firebaseUser) async {
     _firebaseUser = firebaseUser;
-    _studentProfileList = await profile_service.getAllStudentProfiles();
-    _studentProfileMap =
-        StudentProfileModel.buildStudentProfileMap(_studentProfileList);
     _teacherProfileList = await profile_service.getAllTeacherProfiles();
     _teacherProfileMap =
         TeacherProfileModel.buildTeacherProfileMap(_teacherProfileList);
@@ -266,7 +256,7 @@ class AccountModel extends ChangeNotifier {
     }
   }
 
-  void _refreshSubscriptionData() async {
+  Future<void> _refreshSubscriptionData() async {
     _subscriptionDocs =
         await stripe_service.getSubscriptionsForUser(_firebaseUser!.uid);
     _subscriptionPlan =
@@ -278,14 +268,12 @@ class AccountModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool shouldShowContent() {
-    return userType != UserType.student || _subscriptionPlan != null;
-  }
+  bool shouldShowContent() =>
+      userType != UserType.student || _subscriptionPlan != null;
 
-  bool hasPointsDiscount() {
-    return _subscriptionPlan == SubscriptionPlan.minimum ||
-        _subscriptionPlan == SubscriptionPlan.minimumPreschool;
-  }
+  bool hasPointsDiscount() =>
+      _subscriptionPlan == SubscriptionPlan.minimum ||
+      _subscriptionPlan == SubscriptionPlan.minimumPreschool;
 }
 
 class MyUserModel {
@@ -304,11 +292,9 @@ class MyUserModel {
         email = json['email'] as String,
         timeZone = json['time_zone'] as String;
 
-  Map<String, Object?> toJson() {
-    return {
-      'referral_code': referralCode,
-      'email': email,
-      'time_zone': timeZone,
-    };
-  }
+  Map<String, Object?> toJson() => {
+        'referral_code': referralCode,
+        'email': email,
+        'time_zone': timeZone,
+      };
 }

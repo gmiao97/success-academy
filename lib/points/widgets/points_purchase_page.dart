@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:success_academy/account/data/account_model.dart';
+import 'package:success_academy/generated/l10n.dart';
+import 'package:success_academy/profile/data/profile_model.dart';
+import 'package:success_academy/profile/services/purchase_service.dart'
+    as stripe_service;
 
-import '../../account/data/account_model.dart';
-import '../../generated/l10n.dart';
-import '../data/profile_model.dart';
-import '../services/purchase_service.dart' as stripe_service;
-
-class AddPointsPage extends StatefulWidget {
-  const AddPointsPage({super.key});
+class PointsPurchasePage extends StatefulWidget {
+  const PointsPurchasePage({super.key});
 
   @override
-  State<AddPointsPage> createState() => _AddPointsPageState();
+  State<PointsPurchasePage> createState() => _PointsPurchasePageState();
 }
 
-class _AddPointsPageState extends State<AddPointsPage> {
+class _PointsPurchasePageState extends State<PointsPurchasePage> {
   final List<bool> _selectedToggle = [true, false];
 
   @override
@@ -45,7 +45,7 @@ class _AddPointsPageState extends State<AddPointsPage> {
                       child: ToggleButtons(
                         onPressed: (index) {
                           setState(() {
-                            for (int i = 0; i < _selectedToggle.length; i++) {
+                            for (var i = 0; i < _selectedToggle.length; i++) {
                               _selectedToggle[i] = i == index;
                             }
                           });
@@ -78,9 +78,10 @@ class _AddPointsPageState extends State<AddPointsPage> {
                     ],
                   ),
                 ),
-                _selectedToggle[0]
-                    ? const _OneTimePointsPurchase()
-                    : const _SubscriptionPointsPurchase(),
+                if (_selectedToggle[0])
+                  const _OneTimePointsPurchase()
+                else
+                  const _SubscriptionPointsPurchase(),
               ],
             ),
           ),
@@ -180,46 +181,47 @@ class _OneTimePointsPurchaseState extends State<_OneTimePointsPurchase> {
             const SizedBox(
               height: 30,
             ),
-            _redirectClicked
-                ? const CircularProgressIndicator()
-                : FilledButton.tonalIcon(
-                    label: Text(S.of(context).stripePointsPurchase),
-                    icon: const Icon(Icons.exit_to_app),
-                    onPressed: account.shouldShowContent()
-                        ? () async {
-                            if (_formKey.currentState!.validate()) {
-                              setState(() {
-                                _redirectClicked = true;
-                              });
-                              try {
-                                await stripe_service
-                                    .startStripePointsCheckoutSession(
-                                  userId: account.firebaseUser!.uid,
-                                  profileId: account.studentProfile!.profileId,
-                                  quantity: _numPoints,
-                                  coupon: _pointsCouponMap[_numPoints],
-                                );
-                              } catch (err) {
-                                setState(() {
-                                  _redirectClicked = false;
-                                });
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      S.of(context).stripeRedirectFailure,
-                                    ),
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.error,
-                                  ),
-                                );
-                                debugPrint(
-                                  'Failed to start Stripe points purchase: $err',
-                                );
-                              }
-                            }
+            if (_redirectClicked)
+              const CircularProgressIndicator()
+            else
+              FilledButton.tonalIcon(
+                label: Text(S.of(context).stripePointsPurchase),
+                icon: const Icon(Icons.exit_to_app),
+                onPressed: account.shouldShowContent()
+                    ? () async {
+                        if (_formKey.currentState!.validate()) {
+                          setState(() {
+                            _redirectClicked = true;
+                          });
+                          try {
+                            await stripe_service
+                                .startStripePointsCheckoutSession(
+                              userId: account.firebaseUser!.uid,
+                              profileId: account.studentProfile!.profileId,
+                              quantity: _numPoints,
+                              coupon: _pointsCouponMap[_numPoints],
+                            );
+                          } catch (err) {
+                            setState(() {
+                              _redirectClicked = false;
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  S.of(context).stripeRedirectFailure,
+                                ),
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.error,
+                              ),
+                            );
+                            debugPrint(
+                              'Failed to start Stripe points purchase: $err',
+                            );
                           }
-                        : null,
-                  ),
+                        }
+                      }
+                    : null,
+              ),
           ],
         ),
       ),
@@ -272,68 +274,68 @@ class _SubscriptionPointsPurchaseState
     return Form(
       child: Column(
         children: [
-          account.pointSubscriptionPriceId != null
-              ? Text(
-                  S.of(context).currentPointSubscription(
-                        account.pointSubscriptionQuantity!,
-                      ),
-                  style: Theme.of(context).textTheme.titleMedium,
-                )
-              : Text(
-                  S.of(context).currentPointSubscription('0'),
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
+          if (account.pointSubscriptionPriceId != null)
+            Text(
+              S.of(context).currentPointSubscription(
+                    account.pointSubscriptionQuantity!,
+                  ),
+              style: Theme.of(context).textTheme.titleMedium,
+            )
+          else
+            Text(
+              S.of(context).currentPointSubscription('0'),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
           const SizedBox(height: 25),
           Text(S.of(context).pointSubscriptionTrial),
           Text(S.of(context).removePointSubscription),
           const SizedBox(height: 25),
-          account.subscriptionPlan == SubscriptionPlan.monthly
-              ? DropdownMenu<String>(
-                  requestFocusOnTap: true,
-                  initialSelection: _orderPointSubscriptionPrivateOnlyPriceId,
-                  label: Text(S.of(context).type),
-                  onSelected: (value) {
-                    setState(() {
-                      _selectedPrice = value!;
-                    });
-                  },
-                  dropdownMenuEntries: [
-                    DropdownMenuEntry(
-                      value: _orderPointSubscriptionPrivateOnlyPriceId,
-                      label: S.of(context).orderPointSubscriptionPrivateOnly,
-                    ),
-                    DropdownMenuEntry(
-                      value: _supplementaryPointSubscriptionPrivateOnlyPriceId,
-                      label: S
-                          .of(context)
-                          .freeSupplementaryPointSubscriptionPrivateOnly,
-                    ),
-                  ],
-                )
-              : DropdownMenu<String>(
-                  requestFocusOnTap: true,
-                  initialSelection:
-                      _orderPointSubscriptionFreeAndPrivatePriceId,
-                  label: Text(S.of(context).type),
-                  onSelected: (value) {
-                    setState(() {
-                      _selectedPrice = value!;
-                    });
-                  },
-                  dropdownMenuEntries: [
-                    DropdownMenuEntry(
-                      value: _orderPointSubscriptionFreeAndPrivatePriceId,
-                      label: S.of(context).orderPointSubscriptionFreeAndPrivate,
-                    ),
-                    DropdownMenuEntry(
-                      value:
-                          _supplementaryPointSubscriptionFreeAndPrivatePriceId,
-                      label: S
-                          .of(context)
-                          .freeSupplementaryPointSubscriptionFreeAndPrivate,
-                    ),
-                  ],
+          if (account.subscriptionPlan == SubscriptionPlan.monthly)
+            DropdownMenu<String>(
+              requestFocusOnTap: true,
+              initialSelection: _orderPointSubscriptionPrivateOnlyPriceId,
+              label: Text(S.of(context).type),
+              onSelected: (value) {
+                setState(() {
+                  _selectedPrice = value!;
+                });
+              },
+              dropdownMenuEntries: [
+                DropdownMenuEntry(
+                  value: _orderPointSubscriptionPrivateOnlyPriceId,
+                  label: S.of(context).orderPointSubscriptionPrivateOnly,
                 ),
+                DropdownMenuEntry(
+                  value: _supplementaryPointSubscriptionPrivateOnlyPriceId,
+                  label: S
+                      .of(context)
+                      .freeSupplementaryPointSubscriptionPrivateOnly,
+                ),
+              ],
+            )
+          else
+            DropdownMenu<String>(
+              requestFocusOnTap: true,
+              initialSelection: _orderPointSubscriptionFreeAndPrivatePriceId,
+              label: Text(S.of(context).type),
+              onSelected: (value) {
+                setState(() {
+                  _selectedPrice = value!;
+                });
+              },
+              dropdownMenuEntries: [
+                DropdownMenuEntry(
+                  value: _orderPointSubscriptionFreeAndPrivatePriceId,
+                  label: S.of(context).orderPointSubscriptionFreeAndPrivate,
+                ),
+                DropdownMenuEntry(
+                  value: _supplementaryPointSubscriptionFreeAndPrivatePriceId,
+                  label: S
+                      .of(context)
+                      .freeSupplementaryPointSubscriptionFreeAndPrivate,
+                ),
+              ],
+            ),
           const SizedBox(
             height: 20,
           ),
@@ -356,55 +358,55 @@ class _SubscriptionPointsPurchaseState
           const SizedBox(
             height: 20,
           ),
-          _redirectClicked
-              ? const CircularProgressIndicator(
-                  value: null,
-                )
-              : FilledButton.tonalIcon(
-                  onPressed: account.pointSubscriptionPriceId != null
-                      ? null
-                      : account.shouldShowContent()
-                          ? () async {
-                              try {
-                                setState(() {
-                                  _redirectClicked = true;
-                                });
-                                int pointQuantity = _selectedNumber *
-                                    _priceIdToPointsMap[_selectedPrice]!;
-                                await stripe_service
-                                    .startStripePointSubscriptionCheckoutSession(
-                                  userId: account.firebaseUser!.uid,
-                                  profileId: account.studentProfile!.profileId,
-                                  priceId: _selectedPrice,
-                                  quantity: pointQuantity,
-                                );
-                                account.pointSubscriptionQuantity =
-                                    pointQuantity;
-                                setState(() {
-                                  _redirectClicked = false;
-                                });
-                              } catch (err) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      S.of(context).stripeRedirectFailure,
-                                    ),
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.error,
-                                  ),
-                                );
-                                setState(() {
-                                  _redirectClicked = false;
-                                });
-                                debugPrint(
-                                  'Failed to start Stripe point subscription checkout $err',
-                                );
-                              }
-                            }
-                          : null,
-                  label: Text(S.of(context).stripePurchase),
-                  icon: const Icon(Icons.exit_to_app),
-                ),
+          if (_redirectClicked)
+            const CircularProgressIndicator(
+              value: null,
+            )
+          else
+            FilledButton.tonalIcon(
+              onPressed: account.pointSubscriptionPriceId != null
+                  ? null
+                  : account.shouldShowContent()
+                      ? () async {
+                          try {
+                            setState(() {
+                              _redirectClicked = true;
+                            });
+                            final pointQuantity = _selectedNumber *
+                                _priceIdToPointsMap[_selectedPrice]!;
+                            await stripe_service
+                                .startStripePointSubscriptionCheckoutSession(
+                              userId: account.firebaseUser!.uid,
+                              profileId: account.studentProfile!.profileId,
+                              priceId: _selectedPrice,
+                              quantity: pointQuantity,
+                            );
+                            account.pointSubscriptionQuantity = pointQuantity;
+                            setState(() {
+                              _redirectClicked = false;
+                            });
+                          } catch (err) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  S.of(context).stripeRedirectFailure,
+                                ),
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.error,
+                              ),
+                            );
+                            setState(() {
+                              _redirectClicked = false;
+                            });
+                            debugPrint(
+                              'Failed to start Stripe point subscription checkout $err',
+                            );
+                          }
+                        }
+                      : null,
+              label: Text(S.of(context).stripePurchase),
+              icon: const Icon(Icons.exit_to_app),
+            ),
         ],
       ),
     );

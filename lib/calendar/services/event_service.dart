@@ -1,21 +1,21 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
-
-import 'package:success_academy/helpers/tz_date_time_range.dart';
+import 'package:logger/logger.dart';
+import 'package:success_academy/calendar/data/event_model.dart';
+import 'package:success_academy/helpers/tz_date_time.dart';
 import 'package:timezone/timezone.dart' show Location;
 
-import '../data/event_model.dart';
+const isDev = false;
 
-const isDev = kDebugMode;
-
-final FirebaseFunctions functions =
+final Logger _logger = Logger();
+final FirebaseFunctions _functions =
     FirebaseFunctions.instanceFor(region: 'us-west2');
 
 Future<EventModel> getEvent({
   required String eventId,
   required Location location,
 }) async {
-  HttpsCallable callable = functions.httpsCallable(
+  final callable = _functions.httpsCallable(
     'calendar_functions-get_event',
     options: HttpsCallableOptions(
       timeout: const Duration(seconds: 60),
@@ -39,7 +39,7 @@ Future<List<EventModel>> listEvents({
   required TZDateTimeRange dateTimeRange,
   required bool singleEvents,
 }) async {
-  HttpsCallable callable = functions.httpsCallable(
+  final callable = _functions.httpsCallable(
     'calendar_functions-list_events',
     options: HttpsCallableOptions(
       timeout: const Duration(seconds: 60),
@@ -64,10 +64,44 @@ Future<List<EventModel>> listEvents({
   }
 }
 
+Future<List<EventModel>> listInstances({
+  required String eventId,
+  required Location location,
+  required TZDateTimeRange dateTimeRange,
+}) async {
+  final callable = _functions.httpsCallable(
+    'calendar_functions-list_instances',
+    options: HttpsCallableOptions(
+      timeout: const Duration(seconds: 60),
+    ),
+  );
+
+  try {
+    final result = await callable({
+      'eventId': eventId,
+      'timeZone': location.name,
+      'timeMin': dateTimeRange.start.toIso8601String(),
+      'timeMax': dateTimeRange.end.toIso8601String(),
+      'isDev': isDev,
+    });
+    return (result.data as List<dynamic>)
+        .where((e) => e['status'] != 'cancelled')
+        .map((event) => EventModel.fromJson(event, location: location))
+        .toList();
+  } catch (e, s) {
+    _logger.e(
+      'listInstances failed',
+      error: e,
+      stackTrace: s,
+    );
+    rethrow;
+  }
+}
+
 Future<dynamic> deleteEvent({
   required String eventId,
 }) async {
-  HttpsCallable callable = functions.httpsCallable(
+  final callable = _functions.httpsCallable(
     'calendar_functions-delete_event',
     options: HttpsCallableOptions(
       timeout: const Duration(seconds: 60),
@@ -90,7 +124,7 @@ Future<dynamic> insertEvent(
   EventModel event, {
   required Location location,
 }) async {
-  HttpsCallable callable = functions.httpsCallable(
+  final callable = _functions.httpsCallable(
     'calendar_functions-insert_event',
     options: HttpsCallableOptions(
       timeout: const Duration(seconds: 60),
@@ -110,7 +144,7 @@ Future<dynamic> insertEvent(
 }
 
 Future<dynamic> updateEvent(EventModel event) async {
-  HttpsCallable callable = functions.httpsCallable(
+  final callable = _functions.httpsCallable(
     'calendar_functions-update_event',
     options: HttpsCallableOptions(
       timeout: const Duration(seconds: 60),
@@ -134,7 +168,7 @@ Future<dynamic> emailAttendees(
   String studentId, {
   bool isCancel = false,
 }) async {
-  HttpsCallable callable = functions.httpsCallable(
+  final callable = _functions.httpsCallable(
     'email_attendees',
     options: HttpsCallableOptions(
       timeout: const Duration(seconds: 60),

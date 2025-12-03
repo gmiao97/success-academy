@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../../account/data/account_model.dart';
-import 'admin_profile_view.dart';
-import 'student_profile_view.dart';
-import 'teacher_profile_view.dart';
+import 'package:success_academy/account/data/account_model.dart';
+import 'package:success_academy/profile/widgets/admin_profile_view.dart';
+import 'package:success_academy/profile/widgets/student_profile_view.dart';
+import 'package:success_academy/profile/widgets/teacher_profile_view.dart';
 
 class ProfileHomePage extends StatefulWidget {
   const ProfileHomePage({super.key});

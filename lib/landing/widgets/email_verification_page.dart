@@ -1,10 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../../account/data/account_model.dart';
-import '../../constants.dart' as constants;
-import '../../generated/l10n.dart';
+import 'package:success_academy/account/data/account_model.dart';
+import 'package:success_academy/constants.dart' as constants;
+import 'package:success_academy/generated/l10n.dart';
 
 // TODO: Make refresh after email verification automatic.
 class EmailVerificationPage extends StatelessWidget {
@@ -44,7 +43,7 @@ class EmailVerificationPage extends StatelessWidget {
               await FirebaseAuth.instance.signOut();
             },
             child: Text(S.of(context).signOut),
-          )
+          ),
         ],
       ),
       body: Padding(

@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:success_academy/account/data/account_model.dart';
+import 'package:success_academy/constants.dart' as constants;
+import 'package:success_academy/generated/l10n.dart';
+import 'package:success_academy/profile/data/profile_model.dart';
 import 'package:success_academy/profile/services/profile_service.dart'
     as profile_service;
 import 'package:success_academy/profile/services/purchase_service.dart'
     as stripe_service;
-
-import '../../account/data/account_model.dart';
-import '../../constants.dart' as constants;
-import '../../generated/l10n.dart';
-import '../data/profile_model.dart';
-import 'create_subscription_form.dart';
+import 'package:success_academy/profile/widgets/create_subscription_form.dart';
 
 class StudentProfileView extends StatefulWidget {
   const StudentProfileView({super.key});
@@ -21,7 +20,7 @@ class StudentProfileView extends StatefulWidget {
 
 class _StudentProfileViewState extends State<StudentProfileView> {
   bool _redirectClicked = false;
-  bool _isReferral = false;
+  String? _referralType;
   String? _referrer;
   SubscriptionPlan _subscriptionPlan = SubscriptionPlan.minimum;
 
@@ -147,7 +146,7 @@ class _StudentProfileViewState extends State<StudentProfileView> {
                             );
                           },
                           icon: const Icon(Icons.copy),
-                        )
+                        ),
                       ],
                     ),
                     RichText(
@@ -166,63 +165,65 @@ class _StudentProfileViewState extends State<StudentProfileView> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    account.subscriptionPlan != null
-                        ? _ManageSubscription(
-                            subscriptionPlan: account.subscriptionPlan!,
-                          )
-                        : CreateSubscriptionForm(
-                            subscriptionPlan: _subscriptionPlan,
-                            onSubscriptionPlanChange: (subscription) {
-                              setState(() {
-                                _subscriptionPlan = subscription!;
-                              });
-                            },
-                            redirectClicked: _redirectClicked,
-                            setIsReferral: (isReferral) {
-                              _isReferral = isReferral;
-                            },
-                            setReferrer: (name) {
-                              _referrer = name;
-                            },
-                            onStripeSubmitClicked: () async {
-                              setState(() {
-                                _redirectClicked = true;
-                              });
-                              final updatedStudentProfile =
-                                  account.studentProfile!;
-                              updatedStudentProfile.referrer = _referrer;
-                              try {
-                                await profile_service.updateStudentProfile(
-                                  account.firebaseUser!.uid,
-                                  updatedStudentProfile,
-                                );
-                                account.studentProfile = updatedStudentProfile;
-                                await stripe_service
-                                    .startStripeSubscriptionCheckoutSession(
-                                  userId: account.firebaseUser!.uid,
-                                  profileId: account.studentProfile!.profileId,
-                                  subscriptionPlan: _subscriptionPlan,
-                                  isReferral: _isReferral,
-                                );
-                              } catch (e) {
-                                setState(() {
-                                  _redirectClicked = false;
-                                });
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      S.of(context).stripeRedirectFailure,
-                                    ),
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.error,
-                                  ),
-                                );
-                                debugPrint(
-                                  'Failed to start Stripe subscription checkout $e',
-                                );
-                              }
-                            },
-                          ),
+                    if (account.subscriptionPlan != null)
+                      _ManageSubscription(
+                        subscriptionPlan: account.subscriptionPlan!,
+                      )
+                    else
+                      CreateSubscriptionForm(
+                        subscriptionPlan: _subscriptionPlan,
+                        onSubscriptionPlanChange: (subscription) {
+                          setState(() {
+                            _subscriptionPlan = subscription!;
+                          });
+                        },
+                        redirectClicked: _redirectClicked,
+                        setReferralType: (referralType) {
+                          _referralType = referralType;
+                        },
+                        setReferrer: (name) {
+                          _referrer = name;
+                        },
+                        onStripeSubmitClicked: () async {
+                          setState(() {
+                            _redirectClicked = true;
+                          });
+                          final updatedStudentProfile = account.studentProfile!
+                            ..referrer = _referrer
+                            ..dateOfBirth
+                            ..numPoints = 200;
+                          try {
+                            await profile_service.updateStudentProfile(
+                              account.firebaseUser!.uid,
+                              updatedStudentProfile,
+                            );
+                            account.studentProfile = updatedStudentProfile;
+                            await stripe_service
+                                .startStripeSubscriptionCheckoutSession(
+                              userId: account.firebaseUser!.uid,
+                              profileId: account.studentProfile!.profileId,
+                              subscriptionPlan: _subscriptionPlan,
+                              referralType: _referralType,
+                            );
+                          } catch (e) {
+                            setState(() {
+                              _redirectClicked = false;
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  S.of(context).stripeRedirectFailure,
+                                ),
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.error,
+                              ),
+                            );
+                            debugPrint(
+                              'Failed to start Stripe subscription checkout $e',
+                            );
+                          }
+                        },
+                      ),
                   ],
                 ),
               ),
@@ -249,56 +250,54 @@ class _ManageSubscriptionState extends State<_ManageSubscription> {
   bool _redirectClicked = false;
 
   @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: Theme.of(context).colorScheme.background,
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              S.of(context).manageSubscription,
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            Text(
-              getSubscriptionPlanName(context, widget.subscriptionPlan),
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            Row(
-              children: [
-                FilledButton.tonalIcon(
-                  icon: const Icon(Icons.exit_to_app),
-                  label: Text(S.of(context).manageSubscription),
-                  onPressed: _redirectClicked
-                      ? null
-                      : () {
-                          setState(() {
-                            _redirectClicked = true;
-                          });
-                          try {
-                            stripe_service.redirectToStripePortal();
-                          } catch (e) {
+  Widget build(BuildContext context) => Card(
+        color: Theme.of(context).colorScheme.surface,
+        elevation: 4,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                S.of(context).manageSubscription,
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+              Text(
+                getSubscriptionPlanName(context, widget.subscriptionPlan),
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              Row(
+                children: [
+                  FilledButton.tonalIcon(
+                    icon: const Icon(Icons.exit_to_app),
+                    label: Text(S.of(context).manageSubscription),
+                    onPressed: _redirectClicked
+                        ? null
+                        : () {
                             setState(() {
-                              _redirectClicked = false;
+                              _redirectClicked = true;
                             });
-                          }
-                        },
-                ),
-                if (_redirectClicked)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 5),
-                    child: Transform.scale(
-                      scale: 0.5,
-                      child: const CircularProgressIndicator(),
-                    ),
+                            try {
+                              stripe_service.redirectToStripePortal();
+                            } catch (e) {
+                              setState(() {
+                                _redirectClicked = false;
+                              });
+                            }
+                          },
                   ),
-              ],
-            ),
-          ],
+                  if (_redirectClicked)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      child: Transform.scale(
+                        scale: 0.5,
+                        child: const CircularProgressIndicator(),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }
