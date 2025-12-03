@@ -90,11 +90,9 @@ class _DeleteEventDialogState extends State<DeleteEventDialog> {
     }
   }
 
-  void _onDeleteRangeChanged(_DeleteRange? value) {
-    return setState(() {
-      _deleteRange = value!;
-    });
-  }
+  void _onDeleteRangeChanged(_DeleteRange? value) => setState(() {
+        _deleteRange = value!;
+      });
 
   @override
   Widget build(BuildContext context) {

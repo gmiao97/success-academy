@@ -14,33 +14,31 @@ class ProfileCreatePage extends StatelessWidget {
   const ProfileCreatePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: FilledButton.icon(
-                onPressed: () {
-                  Navigator.maybePop(context);
-                },
-                label: Text(S.of(context).goBack),
-                icon: const Icon(Icons.chevron_left),
+  Widget build(BuildContext context) => Center(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: FilledButton.icon(
+                  onPressed: () {
+                    Navigator.maybePop(context);
+                  },
+                  label: Text(S.of(context).goBack),
+                  icon: const Icon(Icons.chevron_left),
+                ),
               ),
-            ),
-            Card(
-              child: Container(
-                width: 700,
-                padding: const EdgeInsets.all(20),
-                child: const _SignupForm(),
+              Card(
+                child: Container(
+                  width: 700,
+                  padding: const EdgeInsets.all(20),
+                  child: const _SignupForm(),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }
 
 class _SignupForm extends StatefulWidget {

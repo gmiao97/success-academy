@@ -7,9 +7,7 @@ import 'package:success_academy/calendar/data/event_model.dart';
 class EventsCache {
   EventsCache._();
 
-  factory EventsCache() {
-    return _instance;
-  }
+  factory EventsCache() => _instance;
 
   static final EventsCache _instance = EventsCache._();
 

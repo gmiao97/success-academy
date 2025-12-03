@@ -68,39 +68,26 @@ class StudentProfileModel {
 
   String get profileId => _profileId;
 
-  Map<String, Object?> toFirestoreJson() {
-    return {
-      'email': email,
-      'last_name': lastName,
-      'first_name': firstName,
-      'date_of_birth': constants.dateFormatter.format(dateOfBirth),
-      'num_points': numPoints,
-      'referrer': referrer,
-    };
-  }
+  Map<String, Object?> toFirestoreJson() => {
+        'id': _profileId,
+        'email': email,
+        'last_name': lastName,
+        'first_name': firstName,
+        'date_of_birth': constants.dateFormatter.format(dateOfBirth),
+        'num_points': numPoints,
+        'referrer': referrer,
+      };
 
   /// Used to write profile to shared preferences.
-  Map<String, Object?> toJson() {
-    return {
-      'id': _profileId,
-      'email': email,
-      'last_name': lastName,
-      'first_name': firstName,
-      'date_of_birth': constants.dateFormatter.format(dateOfBirth),
-      'num_points': numPoints,
-      'referrer': referrer,
-    };
-  }
-
-  static Map<String, StudentProfileModel> buildStudentProfileMap(
-    List<StudentProfileModel> studentProfileList,
-  ) {
-    final map = Map<String, StudentProfileModel>.fromIterable(
-      studentProfileList,
-      key: (profile) => profile._profileId,
-    );
-    return map;
-  }
+  Map<String, Object?> toJson() => {
+        'id': _profileId,
+        'email': email,
+        'last_name': lastName,
+        'first_name': firstName,
+        'date_of_birth': constants.dateFormatter.format(dateOfBirth),
+        'num_points': numPoints,
+        'referrer': referrer,
+      };
 }
 
 class TeacherProfileModel {
@@ -120,13 +107,11 @@ class TeacherProfileModel {
   String get lastName => _lastName;
   String get firstName => _firstName;
 
-  Map<String, Object?> toJson() {
-    return {
-      'email': _email,
-      'last_name': _lastName,
-      'first_name': _firstName,
-    };
-  }
+  Map<String, Object?> toJson() => {
+        'email': _email,
+        'last_name': _lastName,
+        'first_name': _firstName,
+      };
 
   static Map<String, TeacherProfileModel> buildTeacherProfileMap(
     List<TeacherProfileModel> teacherProfiles,
@@ -156,11 +141,9 @@ class AdminProfileModel {
   String get lastName => _lastName;
   String get firstName => _firstName;
 
-  Map<String, Object?> toJson() {
-    return {
-      'email': _email,
-      'last_name': _lastName,
-      'first_name': _firstName,
-    };
-  }
+  Map<String, Object?> toJson() => {
+        'email': _email,
+        'last_name': _lastName,
+        'first_name': _firstName,
+      };
 }

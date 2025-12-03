@@ -23,12 +23,10 @@ class CalendarView extends StatelessWidget {
   const CalendarView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => EventsDataSource(),
-      child: _CalendarView(),
-    );
-  }
+  Widget build(BuildContext context) => ChangeNotifierProvider(
+        create: (context) => EventsDataSource(),
+        child: _CalendarView(),
+      );
 }
 
 class _CalendarView extends StatefulWidget {
@@ -114,9 +112,8 @@ class _CalendarViewState extends State<_CalendarView> {
     );
   }
 
-  List<EventModel> _getEventsForDay(DateTime day) {
-    return _displayedEvents[DateUtils.dateOnly(day)] ?? [];
-  }
+  List<EventModel> _getEventsForDay(DateTime day) =>
+      _displayedEvents[DateUtils.dateOnly(day)] ?? [];
 
   void _onTodayButtonClick() {
     setState(() {
@@ -199,16 +196,14 @@ class _CalendarViewState extends State<_CalendarView> {
     }
   }
 
-  TZDateTime _getCurrentDate() {
-    return TZDateTime.from(
-      DateUtils.dateOnly(
-        TZDateTime.now(
-          _location,
+  TZDateTime _getCurrentDate() => TZDateTime.from(
+        DateUtils.dateOnly(
+          TZDateTime.now(
+            _location,
+          ),
         ),
-      ),
-      _location,
-    );
-  }
+        _location,
+      );
 
   Future<void> _onCreateEvent(EventModel event) async {
     if (event.recurrence.isEmpty) {
@@ -371,6 +366,7 @@ class _CalendarHeaderState extends State<_CalendarHeader> {
                   .labelLarge!
                   .copyWith(fontWeight: FontWeight.bold),
             ),
+            Text(S.of(context).lessonSignupWarning),
             Text(
               timeZone.replaceAll('_', ' '),
               style: Theme.of(context)

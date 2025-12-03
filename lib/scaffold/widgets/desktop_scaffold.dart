@@ -8,7 +8,7 @@ import 'package:success_academy/calendar/widgets/calendar_view.dart';
 import 'package:success_academy/constants.dart' as constants;
 import 'package:success_academy/generated/l10n.dart';
 import 'package:success_academy/lesson_info/widgets/lesson_info_page.dart';
-import 'package:success_academy/profile/widgets/add_points_page.dart';
+import 'package:success_academy/points/widgets/points_purchase_page.dart';
 import 'package:success_academy/profile/widgets/profile_home_page.dart';
 
 class DesktopScaffold extends StatefulWidget {
@@ -47,7 +47,7 @@ class _DesktopScaffoldState extends State<DesktopScaffold> {
           const ProfileHomePage(),
           const CalendarView(),
           const LessonInfoPage(),
-          const AddPointsPage(),
+          const PointsPurchasePage(),
           const SettingsPage(),
         ];
       default:

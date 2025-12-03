@@ -250,56 +250,54 @@ class _ManageSubscriptionState extends State<_ManageSubscription> {
   bool _redirectClicked = false;
 
   @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: Theme.of(context).colorScheme.surface,
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              S.of(context).manageSubscription,
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            Text(
-              getSubscriptionPlanName(context, widget.subscriptionPlan),
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            Row(
-              children: [
-                FilledButton.tonalIcon(
-                  icon: const Icon(Icons.exit_to_app),
-                  label: Text(S.of(context).manageSubscription),
-                  onPressed: _redirectClicked
-                      ? null
-                      : () {
-                          setState(() {
-                            _redirectClicked = true;
-                          });
-                          try {
-                            stripe_service.redirectToStripePortal();
-                          } catch (e) {
+  Widget build(BuildContext context) => Card(
+        color: Theme.of(context).colorScheme.surface,
+        elevation: 4,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                S.of(context).manageSubscription,
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+              Text(
+                getSubscriptionPlanName(context, widget.subscriptionPlan),
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              Row(
+                children: [
+                  FilledButton.tonalIcon(
+                    icon: const Icon(Icons.exit_to_app),
+                    label: Text(S.of(context).manageSubscription),
+                    onPressed: _redirectClicked
+                        ? null
+                        : () {
                             setState(() {
-                              _redirectClicked = false;
+                              _redirectClicked = true;
                             });
-                          }
-                        },
-                ),
-                if (_redirectClicked)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 5),
-                    child: Transform.scale(
-                      scale: 0.5,
-                      child: const CircularProgressIndicator(),
-                    ),
+                            try {
+                              stripe_service.redirectToStripePortal();
+                            } catch (e) {
+                              setState(() {
+                                _redirectClicked = false;
+                              });
+                            }
+                          },
                   ),
-              ],
-            ),
-          ],
+                  if (_redirectClicked)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      child: Transform.scale(
+                        scale: 0.5,
+                        child: const CircularProgressIndicator(),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }

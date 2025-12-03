@@ -3,28 +3,24 @@ import 'package:success_academy/lesson_info/data/lesson_model.dart';
 
 final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-CollectionReference<LessonModel> _lessonModelRef = _db
-    .collection('lessons')
-    .withConverter<LessonModel>(
-      fromFirestore: (snapshot, _) => LessonModel.fromJson(snapshot.data()!),
-      toFirestore: (profileModel, _) => profileModel.toJson(),
-    );
+CollectionReference<LessonModel> _lessonModelRef =
+    _db.collection('lessons').withConverter<LessonModel>(
+          fromFirestore: (doc, _) => LessonModel.fromJson(doc.data()!),
+          toFirestore: (profileModel, _) => profileModel.toJson(),
+        );
 
 /// Get list of all lesson information.
-Future<List<LessonModel>> getLessons({required bool includePreschool}) {
-  return _lessonModelRef.get().then(
-        (querySnapshot) => querySnapshot.docs
-            .map((queryDocumentSnapshot) => queryDocumentSnapshot.data())
-            .where((lesson) {
-          if (!includePreschool && lesson.visibility == 'preschool') {
-            return false;
-          }
-          return true;
-        }).toList(),
-      );
+Future<List<LessonModel>> getLessons({required bool includePreschool}) async {
+  final result = await (includePreschool
+      ? _lessonModelRef.get()
+      : _lessonModelRef.where('visibility', isNotEqualTo: 'preschool').get());
+  return result.docs
+      .map(
+        (e) => e.data(),
+      )
+      .toList();
 }
 
 /// Update given lesson.
-Future<void> updateLesson(String id, LessonModel data) {
-  return _db.collection('lessons').doc(id).update(data.toJson());
-}
+Future<void> updateLesson(String id, LessonModel data) =>
+    _db.collection('lessons').doc(id).update(data.toJson());

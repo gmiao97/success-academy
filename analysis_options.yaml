@@ -25,6 +25,7 @@ linter:
   rules:
     - cascade_invocations
     - omit_local_variable_types
+    - prefer_expression_function_bodies
     - prefer_single_quotes
     - require_trailing_commas
 

@@ -6,14 +6,14 @@ import 'package:success_academy/profile/data/profile_model.dart';
 import 'package:success_academy/profile/services/purchase_service.dart'
     as stripe_service;
 
-class AddPointsPage extends StatefulWidget {
-  const AddPointsPage({super.key});
+class PointsPurchasePage extends StatefulWidget {
+  const PointsPurchasePage({super.key});
 
   @override
-  State<AddPointsPage> createState() => _AddPointsPageState();
+  State<PointsPurchasePage> createState() => _PointsPurchasePageState();
 }
 
-class _AddPointsPageState extends State<AddPointsPage> {
+class _PointsPurchasePageState extends State<PointsPurchasePage> {
   final List<bool> _selectedToggle = [true, false];
 
   @override

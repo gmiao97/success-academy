@@ -126,19 +126,17 @@ class _AddProfileWidget extends StatelessWidget {
   const _AddProfileWidget();
 
   @override
-  Widget build(BuildContext context) {
-    return CircleAvatar(
-      radius: 100,
-      backgroundColor: Theme.of(context).colorScheme.secondary,
-      child: InkWell(
-        onTap: () {
-          Navigator.pushNamed(context, constants.routeCreateProfile);
-        },
-        child: const Icon(
-          Icons.add,
-          size: 50,
+  Widget build(BuildContext context) => CircleAvatar(
+        radius: 100,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+        child: InkWell(
+          onTap: () {
+            Navigator.pushNamed(context, constants.routeCreateProfile);
+          },
+          child: const Icon(
+            Icons.add,
+            size: 50,
+          ),
         ),
-      ),
-    );
-  }
+      );
 }

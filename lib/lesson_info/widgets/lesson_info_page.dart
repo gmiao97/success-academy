@@ -151,57 +151,77 @@ class ZoomInfo extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          S.of(context).freeLessonZoomInfo,
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-        SizedBox(
-          width: 1000,
-          child: PaginatedDataTable(
-            rowsPerPage: 3,
-            columns: <DataColumn>[
-              DataColumn(
-                label: Expanded(
-                  child: Text(
-                    S.of(context).lesson,
-                    style: const TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                ),
-              ),
-              DataColumn(
-                label: Expanded(
-                  child: Text(
-                    S.of(context).link,
-                    style: const TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                ),
-              ),
-              DataColumn(
-                label: Expanded(
-                  child: Text(
-                    S.of(context).meetingId,
-                    style: const TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                ),
-              ),
-              DataColumn(
-                label: Expanded(
-                  child: Text(
-                    S.of(context).password,
-                    style: const TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                ),
-              ),
-            ],
-            source: _ZoomInfoDataSource(context: context, data: zoomInfo),
+  Widget build(BuildContext context) => Column(
+        children: [
+          Text(
+            S.of(context).freeLessonZoomInfo,
+            style: Theme.of(context).textTheme.headlineMedium,
           ),
-        ),
-      ],
-    );
-  }
+          SizedBox(
+            width: 1000,
+            child: PaginatedDataTable(
+              rowsPerPage: 3,
+              columns: <DataColumn>[
+                DataColumn(
+                  label: Expanded(
+                    child: Text(
+                      S.of(context).lesson,
+                      style: const TextStyle(fontStyle: FontStyle.italic),
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Expanded(
+                    child: Text(
+                      S.of(context).link,
+                      style: const TextStyle(fontStyle: FontStyle.italic),
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Expanded(
+                    child: Text(
+                      S.of(context).meetingId,
+                      style: const TextStyle(fontStyle: FontStyle.italic),
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Expanded(
+                    child: Text(
+                      S.of(context).password,
+                      style: const TextStyle(fontStyle: FontStyle.italic),
+                    ),
+                  ),
+                ),
+              ],
+              source: _ZoomInfoDataSource(context: context, data: zoomInfo),
+            ),
+          ),
+          InkWell(
+            onTap: () async {
+              if (!await launchUrl(
+                Uri.parse(
+                  'https://docs.google.com/document/d/1gJuGiJUm85nC0s5WUD_daaOz7JNz0dOQCCKuy2oHckw/edit?usp=sharing',
+                ),
+              )) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: Theme.of(context).colorScheme.error,
+                      content: Text(S.of(context).openLinkFailure),
+                    ),
+                  );
+                }
+              }
+            },
+            child: Text(
+              S.of(context).lessonRules,
+              style: const TextStyle(color: Colors.blue),
+            ),
+          ),
+        ],
+      );
 }
 
 class _ZoomInfoDataSource extends DataTableSource {
@@ -223,38 +243,35 @@ class _ZoomInfoDataSource extends DataTableSource {
   int get selectedRowCount => 0;
 
   @override
-  DataRow getRow(int i) {
-    return DataRow(
-      cells: [
-        DataCell(Text(data[i].name)),
-        DataCell(
-          InkWell(
-            child: const Text(
-              'Zoom',
-              style: TextStyle(
-                decoration: TextDecoration.underline,
-                color: Colors.blue,
+  DataRow getRow(int i) => DataRow(
+        cells: [
+          DataCell(Text(data[i].name)),
+          DataCell(
+            InkWell(
+              child: const Text(
+                'Zoom',
+                style: TextStyle(
+                  color: Colors.blue,
+                ),
               ),
-            ),
-            onTap: () async {
-              if (!await launchUrl(Uri.parse(data[i].zoomLink))) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      backgroundColor: Theme.of(context).colorScheme.error,
-                      content: Text(S.of(context).openLinkFailure),
-                    ),
-                  );
+              onTap: () async {
+                if (!await launchUrl(Uri.parse(data[i].zoomLink))) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                        content: Text(S.of(context).openLinkFailure),
+                      ),
+                    );
+                  }
                 }
-              }
-            },
+              },
+            ),
           ),
-        ),
-        DataCell(Text(data[i].zoomId)),
-        DataCell(Text(data[i].zoomPassword)),
-      ],
-    );
-  }
+          DataCell(Text(data[i].zoomId)),
+          DataCell(Text(data[i].zoomPassword)),
+        ],
+      );
 }
 
 class EditableZoomInfo extends StatelessWidget {

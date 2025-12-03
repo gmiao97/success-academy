@@ -90,9 +90,8 @@ void main() {
 TZDateTimeRange _createTZDateTimeRange(
   int startMillis,
   int endMillis,
-) {
-  return TZDateTimeRange(
-    start: TZDateTime.fromMillisecondsSinceEpoch(location, startMillis),
-    end: TZDateTime.fromMillisecondsSinceEpoch(location, endMillis),
-  );
-}
+) =>
+    TZDateTimeRange(
+      start: TZDateTime.fromMillisecondsSinceEpoch(location, startMillis),
+      end: TZDateTime.fromMillisecondsSinceEpoch(location, endMillis),
+    );

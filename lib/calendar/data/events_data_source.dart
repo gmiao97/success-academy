@@ -4,12 +4,10 @@ import 'package:success_academy/calendar/data/event_model.dart';
 import 'package:success_academy/calendar/data/events_cache.dart';
 import 'package:success_academy/calendar/services/event_service.dart'
     as event_service;
-import 'package:success_academy/data/data_source.dart';
 import 'package:success_academy/helpers/tz_date_time.dart';
 
-/// [DataSource] to handle fetching and caching of event data.
-final class EventsDataSource extends ChangeNotifier
-    implements DataSource<Set<EventModel>, TZDateTimeRange> {
+/// DataSource to handle fetching and caching of event data.
+final class EventsDataSource extends ChangeNotifier {
   static final Logger _logger = Logger();
 
   final EventsCache _eventsCache = EventsCache();
@@ -18,17 +16,13 @@ final class EventsDataSource extends ChangeNotifier
   List<TZDateTimeRange> get cachedDateTimeRanges => _cachedDateTimeRanges;
 
   /// Loads all currently stored events.
-  @override
-  Future<Set<EventModel>> loadData() async {
-    return _eventsCache.events;
-  }
+  Future<Set<EventModel>> loadData() async => _eventsCache.events;
 
   /// Loads event data that falls within [dateTimeRange].
   ///
   /// Includes events with any overlap with [dateTimeRange] i.e. an end
   /// timestamp greater than `dateTimeRange.start` and a start timestamp less
   /// than `dateTimeRange.end`.
-  @override
   Future<Set<EventModel>> loadDataByKey(TZDateTimeRange dateTimeRange) async {
     if (!_cachedDateTimeRanges.any((range) => range.contains(dateTimeRange))) {
       await fetchAndStoreDataByKey(dateTimeRange);
@@ -44,24 +38,7 @@ final class EventsDataSource extends ChangeNotifier
     );
   }
 
-  /// Refetches and stores events according to [_cachedDateTimeRanges].
-  @override
-  Future<void> fetchAndStoreData() async {
-    _eventsCache.clearAll();
-    for (final dateTimeRange in _cachedDateTimeRanges) {
-      _eventsCache.storeAll(
-        await event_service.listEvents(
-          location: dateTimeRange.start.location,
-          dateTimeRange: dateTimeRange,
-          singleEvents: true,
-        ),
-      );
-    }
-    return;
-  }
-
   /// Fetches and stores event data by [dateTimeRange].
-  @override
   Future<void> fetchAndStoreDataByKey(TZDateTimeRange dateTimeRange) async {
     _eventsCache
       ..clearRange(dateTimeRange)

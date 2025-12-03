@@ -59,6 +59,7 @@ Future<void> startStripeSubscriptionCheckoutSession({
       .add(
     {
       'line_items': lineItems,
+      'trial_period_days': 14,
       'success_url': html.window.location.origin,
       'cancel_url': html.window.location.origin,
       'metadata': {

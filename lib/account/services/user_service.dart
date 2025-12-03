@@ -5,12 +5,11 @@ import 'package:success_academy/account/data/account_model.dart';
 
 final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-final CollectionReference<MyUserModel> _myUserModelRef = _db
-    .collection('myUsers')
-    .withConverter<MyUserModel>(
-      fromFirestore: (snapshot, _) => MyUserModel.fromJson(snapshot.data()!),
-      toFirestore: (myUserModel, _) => myUserModel.toJson(),
-    );
+final CollectionReference<MyUserModel> _myUserModelRef =
+    _db.collection('myUsers').withConverter<MyUserModel>(
+          fromFirestore: (doc, _) => MyUserModel.fromJson(doc.data()!),
+          toFirestore: (myUserModel, _) => myUserModel.toJson(),
+        );
 
 /// Create document in 'myUsers' collection for user uid if not already existing
 Future<void> createMyUserDocIfNotExist(String userId, String email) async {

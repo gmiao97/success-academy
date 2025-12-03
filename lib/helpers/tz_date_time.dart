@@ -21,17 +21,13 @@ class TZDateTimeRange extends DateTimeRange {
   TZDateTime get end => super.end as TZDateTime;
 
   /// Returns whether [dateTimeRange] has overlap with this [TZDateTimeRange].
-  bool overlaps(DateTimeRange dateTimeRange) {
-    return !(start.isAfter(dateTimeRange.end) ||
-        end.isBefore(dateTimeRange.start));
-  }
+  bool overlaps(DateTimeRange dateTimeRange) =>
+      !(start.isAfter(dateTimeRange.end) || end.isBefore(dateTimeRange.start));
 
   /// Returns whether [dateTimeRange] is fully contained in this
   /// [TZDateTimeRange].
-  bool contains(DateTimeRange dateTimeRange) {
-    return !dateTimeRange.start.isBefore(start) &&
-        !dateTimeRange.end.isAfter(end);
-  }
+  bool contains(DateTimeRange dateTimeRange) =>
+      !dateTimeRange.start.isBefore(start) && !dateTimeRange.end.isAfter(end);
 }
 
 /// Merges any overlapping [TZDateTimeRange]s in [dateTimeRanges] and returns a

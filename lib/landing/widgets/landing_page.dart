@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:success_academy/account/data/account_model.dart';
 import 'package:success_academy/constants.dart' as constants;
-import 'package:success_academy/generated/l10n.dart';
-import 'package:success_academy/landing/widgets/sign_in_dialog.dart';
+import 'package:success_academy/landing/widgets/sign_in_form.dart';
 
 class LandingPage extends StatelessWidget {
   const LandingPage({super.key});
@@ -37,20 +36,11 @@ class LandingPage extends StatelessWidget {
             },
             child: Text(account.locale == 'en' ? 'US' : 'JP'),
           ),
-          TextButton(
-            onPressed: () => showDialog(
-              context: context,
-              builder: (context) => const SignInDialog(),
-            ),
-            child: Text(
-              S.of(context).signIn,
-            ),
-          ),
         ],
       ),
       body: Align(
         alignment: Alignment.topCenter,
-        child: Image.asset('assets/images/education.jpg'),
+        child: const SignInForm(),
       ),
     );
   }

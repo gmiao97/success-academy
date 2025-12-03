@@ -9,6 +9,8 @@ import 'package:success_academy/calendar/services/event_service.dart'
     as event_service;
 import 'package:success_academy/generated/l10n.dart';
 import 'package:success_academy/profile/data/profile_model.dart';
+import 'package:success_academy/profile/services/profile_service.dart'
+    as profile_service;
 import 'package:timezone/data/latest_10y.dart' as tz show initializeTimeZones;
 import 'package:timezone/timezone.dart' as tz show getLocation;
 
@@ -35,11 +37,18 @@ class _ViewEventDialogState extends State<ViewEventDialog> {
     super.initState();
     tz.initializeTimeZones();
     _loadRecurrenceEvent();
+    _loadProfiles();
+  }
+
+  Future<void> _loadProfiles() async {
     final account = context.read<AccountModel>();
     _teacher = account.teacherProfileModelMap[widget.event.teacherId];
-    _students = widget.event.studentIdList
-        .map((id) => account.studentProfileMap[id])
-        .toList();
+    final students = await profile_service.getStudentProfiles(
+      widget.event.studentIdList,
+    );
+    setState(() {
+      _students = students;
+    });
   }
 
   Future<void> _loadRecurrenceEvent() async {

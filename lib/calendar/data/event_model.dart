@@ -133,21 +133,19 @@ class EventModel {
     numPoints = int.tryParse(extendedProperties['numPoints'] ?? 'none') ?? 0;
   }
 
-  Map<String, Object?> toJson() {
-    return {
-      'eventId': eventId,
-      'eventType': EnumToString.convertToString(eventType),
-      'summary': summary,
-      'description': description,
-      'startTime': startTime.toIso8601String(),
-      'endTime': endTime.toIso8601String(),
-      'timeZone': timeZone,
-      'recurrence': recurrence,
-      'teacherId': teacherId,
-      'studentIdList': studentIdList,
-      'numPoints': numPoints,
-    };
-  }
+  Map<String, Object?> toJson() => {
+        'eventId': eventId,
+        'eventType': EnumToString.convertToString(eventType),
+        'summary': summary,
+        'description': description,
+        'startTime': startTime.toIso8601String(),
+        'endTime': endTime.toIso8601String(),
+        'timeZone': timeZone,
+        'recurrence': recurrence,
+        'teacherId': teacherId,
+        'studentIdList': studentIdList,
+        'numPoints': numPoints,
+      };
 
   @override
   bool operator ==(Object other) =>
