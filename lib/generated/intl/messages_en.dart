@@ -30,18 +30,18 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m4(cost) => "${cost} points will be refunded";
 
-  static String m5(cost, balance) =>
+  static String m5(percent, cost) => "${percent}% off - \$${cost} USD";
+
+  static String m6(cost, balance) =>
       "${cost} of ${balance} points will be used";
 
-  static String m6(address) =>
+  static String m7(address) =>
       "A verification link has been sent to your email at ${address}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "accountUpdated":
             MessageLookupByLibrary.simpleMessage("Account settings updated"),
-        "addEnglishOption": MessageLookupByLibrary.simpleMessage(
-            "Add english free lessons option - \$40 USD/month"),
         "addPlan": MessageLookupByLibrary.simpleMessage("Add subscription"),
         "addPoints": MessageLookupByLibrary.simpleMessage("Add points"),
         "admin": MessageLookupByLibrary.simpleMessage("ADMIN"),
@@ -87,8 +87,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "editEventSuccess":
             MessageLookupByLibrary.simpleMessage("Edited lesson"),
         "email": MessageLookupByLibrary.simpleMessage("Email"),
-        "englishOption": MessageLookupByLibrary.simpleMessage(
-            "+ English free lessons option - \$40 USD/month"),
         "eventDescriptionLabel":
             MessageLookupByLibrary.simpleMessage("Description"),
         "eventDescriptionValidation": MessageLookupByLibrary.simpleMessage(
@@ -133,6 +131,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Free Lesson Zoom Info"),
         "freeNum": MessageLookupByLibrary.simpleMessage(
             "Number of free lessons completed"),
+        "freePoints": MessageLookupByLibrary.simpleMessage("200 points free"),
         "freeSupplementaryPointSubscriptionFreeAndPrivate":
             MessageLookupByLibrary.simpleMessage(
                 "Supplementary - 153 points per lesson"),
@@ -155,6 +154,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "lessonInfoUpdateFailed":
             MessageLookupByLibrary.simpleMessage("Update failed"),
         "lessonInfoUpdated": MessageLookupByLibrary.simpleMessage("Updated"),
+        "lessonRules": MessageLookupByLibrary.simpleMessage(
+            "⭐️ Free Lesson Rules and Notes ⭐️"),
+        "lessonSignupWarning": MessageLookupByLibrary.simpleMessage(
+            "Please sign up at least 5 minutes before lesson start"),
         "link": MessageLookupByLibrary.simpleMessage("Link"),
         "managePayment":
             MessageLookupByLibrary.simpleMessage("Manage payment methods."),
@@ -163,15 +166,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Manage Subscriptions"),
         "meetingId": MessageLookupByLibrary.simpleMessage("Meeting ID"),
         "minimumCourse": MessageLookupByLibrary.simpleMessage(
-            "Free Lesson - \$40 USD/month"),
+            "Free Lesson - \$50 USD/month"),
         "minimumPreschoolCourse": MessageLookupByLibrary.simpleMessage(
-            "Free Lesson + Preschool Class - \$50 USD/month"),
+            "Free Lesson + Preschool Class - \$60 USD/month"),
         "monthlyCourse": MessageLookupByLibrary.simpleMessage(
             "Monthly Payment - \$10 USD/month (Private Lesson Only)"),
         "myCode": MessageLookupByLibrary.simpleMessage("Referral Code"),
         "myEvents": MessageLookupByLibrary.simpleMessage("My Lessons"),
-        "noEnglishOption": MessageLookupByLibrary.simpleMessage(
-            "Does not include english free lessons option."),
         "noPlan": MessageLookupByLibrary.simpleMessage("No subscription plan"),
         "noPointSubscription":
             MessageLookupByLibrary.simpleMessage("No point subscription"),
@@ -234,8 +235,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "signOut": MessageLookupByLibrary.simpleMessage("Sign out"),
         "signUpFee": MessageLookupByLibrary.simpleMessage(
             "\$50 USD sign-up fee due after trial"),
-        "signUpFeeDiscount":
-            MessageLookupByLibrary.simpleMessage("20% off - \$40 USD"),
+        "signUpFeeDiscount": m5,
         "signedUp": MessageLookupByLibrary.simpleMessage("Signed-up"),
         "signup": MessageLookupByLibrary.simpleMessage("Sign up"),
         "signupFailure":
@@ -263,12 +263,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "today": MessageLookupByLibrary.simpleMessage("Today"),
         "type": MessageLookupByLibrary.simpleMessage("type"),
         "unspecified": MessageLookupByLibrary.simpleMessage("Unspecified"),
-        "usePoints": m5,
+        "usePoints": m6,
         "verifyEmailAction": MessageLookupByLibrary.simpleMessage(
             "Please click on the link in your email to continue the registration process. If you don\'t see a message in your inbox, please check your spam or junk mail folder."),
-        "verifyEmailMessage": m6,
-        "viewProfile": MessageLookupByLibrary.simpleMessage("View Profile"),
-        "withEnglishOption": MessageLookupByLibrary.simpleMessage(
-            "includes english free lessons option - \$40 USD/month")
+        "verifyEmailMessage": m7,
+        "viewProfile": MessageLookupByLibrary.simpleMessage("View Profile")
       };
 }

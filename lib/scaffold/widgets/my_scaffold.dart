@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-
-import 'desktop_scaffold.dart';
-import 'phone_scaffold.dart';
+import 'package:success_academy/scaffold/widgets/desktop_scaffold.dart';
+import 'package:success_academy/scaffold/widgets/phone_scaffold.dart';
 
 class MyScaffold extends StatelessWidget {
   static const double _breakpoint = 960;

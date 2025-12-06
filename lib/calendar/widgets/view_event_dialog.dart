@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:rrule/rrule.dart';
+import 'package:success_academy/account/data/account_model.dart';
+import 'package:success_academy/calendar/calendar_utils.dart';
+import 'package:success_academy/calendar/data/event_model.dart';
+import 'package:success_academy/calendar/services/event_service.dart'
+    as event_service;
+import 'package:success_academy/generated/l10n.dart';
+import 'package:success_academy/profile/data/profile_model.dart';
+import 'package:success_academy/profile/services/profile_service.dart'
+    as profile_service;
 import 'package:timezone/data/latest_10y.dart' as tz show initializeTimeZones;
 import 'package:timezone/timezone.dart' as tz show getLocation;
-
-import '../../account/data/account_model.dart';
-import '../../generated/l10n.dart';
-import '../../profile/data/profile_model.dart';
-import '../calendar_utils.dart';
-import '../data/event_model.dart';
-import '../services/event_service.dart' as event_service;
 
 class ViewEventDialog extends StatefulWidget {
   final EventModel event;
@@ -35,14 +37,21 @@ class _ViewEventDialogState extends State<ViewEventDialog> {
     super.initState();
     tz.initializeTimeZones();
     _loadRecurrenceEvent();
-    final account = context.read<AccountModel>();
-    _teacher = account.teacherProfileModelMap[widget.event.teacherId];
-    _students = widget.event.studentIdList
-        .map((id) => account.studentProfileMap[id])
-        .toList();
+    _loadProfiles();
   }
 
-  void _loadRecurrenceEvent() async {
+  Future<void> _loadProfiles() async {
+    final account = context.read<AccountModel>();
+    _teacher = account.teacherProfileModelMap[widget.event.teacherId];
+    final students = await profile_service.getStudentProfiles(
+      widget.event.studentIdList,
+    );
+    setState(() {
+      _students = students;
+    });
+  }
+
+  Future<void> _loadRecurrenceEvent() async {
     final recurrenceId = widget.event.recurrenceId;
     if (recurrenceId != null) {
       try {
@@ -121,7 +130,7 @@ class _ViewEventDialogState extends State<ViewEventDialog> {
                     TextSpan(
                       text:
                           '${DateFormat.MMMMd(account.locale).add_jm().format(widget.event.startTime)} - ${DateFormat.MMMMd(account.locale).add_jm().format(widget.event.endTime)}',
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -130,14 +139,15 @@ class _ViewEventDialogState extends State<ViewEventDialog> {
                   style: Theme.of(context).textTheme.labelLarge,
                   children: [
                     const WidgetSpan(child: Icon(Icons.repeat)),
-                    _isLoadingRecurringEvent
-                        ? WidgetSpan(
-                            child: Transform.scale(
-                              scale: 0.5,
-                              child: const CircularProgressIndicator(),
-                            ),
-                          )
-                        : TextSpan(text: rruleToString(context, rrule))
+                    if (_isLoadingRecurringEvent)
+                      WidgetSpan(
+                        child: Transform.scale(
+                          scale: 0.5,
+                          child: const CircularProgressIndicator(),
+                        ),
+                      )
+                    else
+                      TextSpan(text: rruleToString(context, rrule)),
                   ],
                 ),
               ),
@@ -158,13 +168,14 @@ class _ViewEventDialogState extends State<ViewEventDialog> {
                           : null,
                     ),
                     const TextSpan(text: ' '),
-                    account.hasPointsDiscount()
-                        ? TextSpan(
-                            text: S.of(context).eventPointsDisplay(
-                                  (widget.event.numPoints * .9).floor(),
-                                ),
-                          )
-                        : const TextSpan(),
+                    if (account.hasPointsDiscount())
+                      TextSpan(
+                        text: S.of(context).eventPointsDisplay(
+                              (widget.event.numPoints * .9).floor(),
+                            ),
+                      )
+                    else
+                      const TextSpan(),
                   ],
                 ),
               ),
@@ -179,16 +190,16 @@ class _ViewEventDialogState extends State<ViewEventDialog> {
                           .labelLarge!
                           .copyWith(fontWeight: FontWeight.bold),
                     ),
-                    _teacher != null
-                        ? TextSpan(
-                            text:
-                                '${_teacher!.lastName} ${_teacher!.firstName}',
-                            style: Theme.of(context).textTheme.labelLarge,
-                          )
-                        : TextSpan(
-                            text: S.of(context).unspecified,
-                            style: Theme.of(context).textTheme.labelLarge,
-                          )
+                    if (_teacher != null)
+                      TextSpan(
+                        text: '${_teacher!.lastName} ${_teacher!.firstName}',
+                        style: Theme.of(context).textTheme.labelLarge,
+                      )
+                    else
+                      TextSpan(
+                        text: S.of(context).unspecified,
+                        style: Theme.of(context).textTheme.labelLarge,
+                      ),
                   ],
                 ),
               ),

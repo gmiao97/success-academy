@@ -2,41 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:success_academy/calendar/data/event_data_source.dart';
-import 'package:success_academy/helpers/tz_date_time_range.dart';
+import 'package:success_academy/account/data/account_model.dart';
+import 'package:success_academy/calendar/calendar_utils.dart';
+import 'package:success_academy/calendar/data/event_model.dart';
+import 'package:success_academy/calendar/data/events_data_source.dart';
+import 'package:success_academy/calendar/widgets/cancel_event_dialog.dart';
+import 'package:success_academy/calendar/widgets/create_event_dialog.dart';
+import 'package:success_academy/calendar/widgets/delete_event_dialog.dart';
+import 'package:success_academy/calendar/widgets/edit_event_dialog.dart';
+import 'package:success_academy/calendar/widgets/signup_event_dialog.dart';
+import 'package:success_academy/calendar/widgets/view_event_dialog.dart';
+import 'package:success_academy/generated/l10n.dart';
+import 'package:success_academy/helpers/tz_date_time.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:timezone/data/latest_10y.dart' as tz show initializeTimeZones;
 import 'package:timezone/timezone.dart' as tz show getLocation;
 import 'package:timezone/timezone.dart' show Location, TZDateTime;
 
-import '../../account/data/account_model.dart';
-import '../../generated/l10n.dart';
-import '../calendar_utils.dart';
-import '../data/event_model.dart';
-import 'cancel_event_dialog.dart';
-import 'create_event_dialog.dart';
-import 'delete_event_dialog.dart';
-import 'edit_event_dialog.dart';
-import 'signup_event_dialog.dart';
-import 'view_event_dialog.dart';
-
 class CalendarView extends StatelessWidget {
   const CalendarView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => EventDataSource(
-        timeZone: context.read<AccountModel>().myUser!.timeZone,
-      ),
-      child: _CalendarView(),
-    );
-  }
+  Widget build(BuildContext context) => ChangeNotifierProvider(
+        create: (context) => EventsDataSource(),
+        child: _CalendarView(),
+      );
 }
 
 class _CalendarView extends StatefulWidget {
-  const _CalendarView();
-
   @override
   State<_CalendarView> createState() => _CalendarViewState();
 }
@@ -46,19 +39,18 @@ class _CalendarViewState extends State<_CalendarView> {
   late final DateTime _firstDay;
   late final DateTime _lastDay;
   late final Location _location;
-  late final EventDataSource _eventDataSource;
 
+  late EventsDataSource _eventsDataSource;
   late TZDateTime _currentDay;
   late TZDateTime _focusedDay;
   late TZDateTime _selectedDay;
-  late TZDateTimeRange _eventsDateTimeRange;
   late List<EventType> _selectedEventTypes;
 
   final Set<EventModel> _allEvents = {};
   List<EventModel> _selectedEvents = [];
   Map<DateTime, List<EventModel>> _displayedEvents = {};
   EventDisplay _eventDisplay = EventDisplay.all;
-  bool _showLoadingIndicator = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -74,38 +66,35 @@ class _CalendarViewState extends State<_CalendarView> {
   }
 
   @override
-  void didChangeDependencies() async {
+  Future<void> didChangeDependencies() async {
     super.didChangeDependencies();
-    _eventDataSource = context.watch<EventDataSource>();
-    _eventsDateTimeRange = TZDateTimeRange(
-      start: _focusedDay.subtract(Duration(days: 21)),
-      end: _focusedDay.add(Duration(days: 21)),
-    );
-    _loadEvents(_eventsDateTimeRange);
+    _eventsDataSource = context.watch<EventsDataSource>();
+    _onPageChanged(_focusedDay);
   }
 
-  void _loadEvents(TZDateTimeRange dateTimeRange) async {
+  Future<void> _loadEvents(TZDateTimeRange dateTimeRange) async {
     setState(() {
-      _showLoadingIndicator = true;
+      _isLoading = true;
     });
 
-    _allEvents.addAll(
-      await _eventDataSource.loadDataByKey(
-        dateTimeRange,
-      ),
-    );
-    _filterEvents();
+    _allEvents
+      ..clear()
+      ..addAll(
+        await _eventsDataSource.loadDataByKey(
+          dateTimeRange,
+        ),
+      );
 
     setState(() {
-      _displayedEvents = buildEventMap(_allEvents);
+      _displayedEvents = _getFilteredEvents();
       _selectedEvents = _getEventsForDay(_selectedDay);
-      _showLoadingIndicator = false;
+      _isLoading = false;
     });
   }
 
-  void _filterEvents() {
+  Map<DateTime, List<EventModel>> _getFilteredEvents() {
     final account = context.read<AccountModel>();
-    _displayedEvents = buildEventMap(
+    return buildEventMap(
       _allEvents.where((event) {
         if (!_selectedEventTypes.contains(event.eventType)) {
           return false;
@@ -123,34 +112,8 @@ class _CalendarViewState extends State<_CalendarView> {
     );
   }
 
-  List<EventModel> _getEventsForDay(DateTime day) {
-    return _displayedEvents[DateUtils.dateOnly(day)] ?? [];
-  }
-
-  void _deleteEventsLocally({
-    required String eventId,
-    bool isRecurrence = false,
-    DateTime? from,
-  }) {
-    if (isRecurrence) {
-      setState(() {
-        for (final eventList in _displayedEvents.values) {
-          eventList.removeWhere((e) {
-            if (from != null) {
-              return e.startTime.isAfter(from) && e.recurrenceId == eventId;
-            }
-            return e.recurrenceId == eventId;
-          });
-        }
-      });
-    } else {
-      setState(() {
-        for (final eventList in _displayedEvents.values) {
-          eventList.removeWhere((e) => e.eventId == eventId);
-        }
-      });
-    }
-  }
+  List<EventModel> _getEventsForDay(DateTime day) =>
+      _displayedEvents[DateUtils.dateOnly(day)] ?? [];
 
   void _onTodayButtonClick() {
     setState(() {
@@ -166,8 +129,9 @@ class _CalendarViewState extends State<_CalendarView> {
     setState(() {
       _selectedEventTypes = eventTypes;
       _eventDisplay = eventDisplay;
+      _displayedEvents = _getFilteredEvents();
+      _selectedEvents = _getEventsForDay(_selectedDay);
     });
-    _filterEvents();
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
@@ -188,44 +152,65 @@ class _CalendarViewState extends State<_CalendarView> {
     });
   }
 
-  void _onPageChanged(DateTime focusedDay) {
-    _focusedDay = TZDateTime(
-      _location,
-      focusedDay.year,
-      focusedDay.month,
-      focusedDay.day,
-    );
-    if (_focusedDay
-        .subtract(Duration(days: 7))
-        .isBefore(_eventsDateTimeRange.start)) {
-      _eventsDateTimeRange = TZDateTimeRange(
-        start: _focusedDay.subtract(const Duration(days: 42)),
-        end: _eventsDateTimeRange.end,
+  Future<void> _onPageChanged(DateTime focusedDay) async {
+    setState(() {
+      _focusedDay = _selectedDay = TZDateTime(
+        _location,
+        focusedDay.year,
+        focusedDay.month,
+        focusedDay.day,
       );
-      _loadEvents(
-        _eventsDateTimeRange,
+    });
+
+    // Display events for currently visible date range.
+    await _loadEvents(
+      TZDateTimeRange(
+        start: _focusedDay.mostRecentWeekday(0),
+        end: _focusedDay.mostRecentWeekday(0).add(const Duration(days: 7)),
+      ),
+    );
+
+    // Prefetch the next pages of data.
+    // The calendar events data source contains a single continuous date time
+    // range.
+    final cachedDateTimeRange = _eventsDataSource.cachedDateTimeRanges[0];
+    if (_focusedDay
+        .subtract(const Duration(days: 10))
+        .isBefore(cachedDateTimeRange.start)) {
+      _eventsDataSource.fetchAndStoreDataByKey(
+        TZDateTimeRange(
+          start: _focusedDay.subtract(const Duration(days: 50)),
+          end: _eventsDataSource.cachedDateTimeRanges[0].end,
+        ),
       );
     }
-    if (_focusedDay.add(Duration(days: 14)).isAfter(_eventsDateTimeRange.end)) {
-      _eventsDateTimeRange = TZDateTimeRange(
-        start: _eventsDateTimeRange.start,
-        end: _focusedDay.add(const Duration(days: 42)),
-      );
-      _loadEvents(
-        _eventsDateTimeRange,
+    if (_focusedDay
+        .add(const Duration(days: 10))
+        .isAfter(cachedDateTimeRange.end)) {
+      _eventsDataSource.fetchAndStoreDataByKey(
+        TZDateTimeRange(
+          start: cachedDateTimeRange.start,
+          end: _focusedDay.add(const Duration(days: 50)),
+        ),
       );
     }
   }
 
-  TZDateTime _getCurrentDate() {
-    return TZDateTime.from(
-      DateUtils.dateOnly(
-        TZDateTime.now(
-          _location,
+  TZDateTime _getCurrentDate() => TZDateTime.from(
+        DateUtils.dateOnly(
+          TZDateTime.now(
+            _location,
+          ),
         ),
-      ),
-      _location,
-    );
+        _location,
+      );
+
+  Future<void> _onCreateEvent(EventModel event) async {
+    if (event.recurrence.isEmpty) {
+      _eventsDataSource.storeEvent(event);
+    } else {
+      await _eventsDataSource.storeInstances(event);
+    }
   }
 
   @override
@@ -238,11 +223,12 @@ class _CalendarViewState extends State<_CalendarView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _showLoadingIndicator
-            ? LinearProgressIndicator(
-                backgroundColor: Theme.of(context).colorScheme.background,
-              )
-            : const SizedBox(height: 4),
+        if (_isLoading)
+          LinearProgressIndicator(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+          )
+        else
+          const SizedBox(height: 4),
         Card(
           child: TableCalendar(
             headerStyle: const HeaderStyle(
@@ -294,7 +280,7 @@ class _CalendarViewState extends State<_CalendarView> {
                 refreshState: () {
                   setState(() {});
                 },
-                deleteEventsLocally: _deleteEventsLocally,
+                onDeleteEvent: _eventsDataSource.removeEvent,
               ),
               if (canEditEvents(userType))
                 Align(
@@ -310,6 +296,7 @@ class _CalendarViewState extends State<_CalendarView> {
                           firstDay: _firstDay,
                           lastDay: _lastDay,
                           selectedDay: _selectedDay,
+                          onCreateEvent: _onCreateEvent,
                         ),
                       ),
                       icon: const Icon(Icons.add),
@@ -379,6 +366,7 @@ class _CalendarHeaderState extends State<_CalendarHeader> {
                   .labelLarge!
                   .copyWith(fontWeight: FontWeight.bold),
             ),
+            Text(S.of(context).lessonSignupWarning),
             Text(
               timeZone.replaceAll('_', ' '),
               style: Theme.of(context)
@@ -470,30 +458,26 @@ class _CalendarHeaderState extends State<_CalendarHeader> {
               onPressed: widget.onTodayButtonClick,
             ),
           ],
-        )
+        ),
       ],
     );
   }
 }
 
 class _EventList extends StatelessWidget {
-  final List<EventModel> events;
-  final DateTime firstDay;
-  final DateTime lastDay;
-  final VoidCallback refreshState;
-  final void Function({
-    required String eventId,
-    bool isRecurrence,
-    DateTime? from,
-  }) deleteEventsLocally;
-
   const _EventList({
     required this.events,
     required this.firstDay,
     required this.lastDay,
     required this.refreshState,
-    required this.deleteEventsLocally,
+    required this.onDeleteEvent,
   });
+
+  final List<EventModel> events;
+  final DateTime firstDay;
+  final DateTime lastDay;
+  final VoidCallback refreshState;
+  final OnDeleteEventCallback onDeleteEvent;
 
   Widget _getEventActions(BuildContext context, EventModel event) {
     final account = context.read<AccountModel>();
@@ -543,7 +527,6 @@ class _EventList extends StatelessWidget {
                     event: event,
                     firstDay: firstDay,
                     lastDay: lastDay,
-                    onRefresh: refreshState,
                   ),
                 ),
               ),
@@ -553,7 +536,7 @@ class _EventList extends StatelessWidget {
                   context: context,
                   builder: (context) => DeleteEventDialog(
                     event: event,
-                    deleteEventsLocally: deleteEventsLocally,
+                    onDeleteEvent: onDeleteEvent,
                   ),
                 ),
               ),
@@ -575,7 +558,6 @@ class _EventList extends StatelessWidget {
                   event: event,
                   firstDay: firstDay,
                   lastDay: lastDay,
-                  onRefresh: () {},
                 ),
               ),
             ),
@@ -585,7 +567,7 @@ class _EventList extends StatelessWidget {
                 context: context,
                 builder: (context) => DeleteEventDialog(
                   event: event,
-                  deleteEventsLocally: deleteEventsLocally,
+                  onDeleteEvent: onDeleteEvent,
                 ),
               ),
             ),

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-
-import '../../account/data/account_model.dart';
-import '../../generated/l10n.dart';
+import 'package:success_academy/account/data/account_model.dart';
+import 'package:success_academy/generated/l10n.dart';
 
 class AdminProfileView extends StatelessWidget {
   const AdminProfileView({super.key});
@@ -81,7 +80,7 @@ class AdminProfileView extends StatelessWidget {
                             );
                           },
                           icon: const Icon(Icons.copy),
-                        )
+                        ),
                       ],
                     ),
                   ],

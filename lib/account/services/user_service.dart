@@ -1,17 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:random_string/random_string.dart';
+import 'package:success_academy/account/data/account_model.dart';
 
-import '../data/account_model.dart';
+final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-final FirebaseFirestore db = FirebaseFirestore.instance;
-
-final CollectionReference<MyUserModel> _myUserModelRef = db
-    .collection('myUsers')
-    .withConverter<MyUserModel>(
-      fromFirestore: (snapshot, _) => MyUserModel.fromJson(snapshot.data()!),
-      toFirestore: (myUserModel, _) => myUserModel.toJson(),
-    );
+final CollectionReference<MyUserModel> _myUserModelRef =
+    _db.collection('myUsers').withConverter<MyUserModel>(
+          fromFirestore: (doc, _) => MyUserModel.fromJson(doc.data()!),
+          toFirestore: (myUserModel, _) => myUserModel.toJson(),
+        );
 
 /// Create document in 'myUsers' collection for user uid if not already existing
 Future<void> createMyUserDocIfNotExist(String userId, String email) async {
@@ -35,11 +33,10 @@ Future<MyUserModel?> getMyUserDoc(String userId) async {
 }
 
 Future<void> updateMyUser({required String userId, String? timeZone}) {
-  Map<String, Object?> json = {};
-  if (timeZone != null) {
-    json['time_zone'] = timeZone;
+  if (timeZone == null) {
+    return Future.value();
   }
-  return _myUserModelRef.doc(userId).update(json);
+  return _myUserModelRef.doc(userId).update({'time_zone': timeZone});
 }
 
 Future<List<String>> getReferralCodes() async {

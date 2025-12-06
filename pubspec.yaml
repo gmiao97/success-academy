@@ -27,47 +27,48 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  flutter:
-    sdk: flutter
-  shared_preferences: ^2.0.15
-  flutter_localizations:
-    sdk: flutter
-
+  cloud_firestore: ^5.5.0
+  cloud_functions: ^5.2.0
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
+  collection: ^1.18.0
   cupertino_icons: ^1.0.2
-  firebase_core: ^3.8.0
-  firebase_auth: ^5.3.3
-  provider: ^6.0.0
-  timezone: ^0.10.0
-  cloud_firestore: ^5.5.0
-  random_string: ^2.3.1
-  flutter_native_timezone: ^2.0.0
-  enum_to_string: ^2.0.1
-  cloud_functions: ^5.1.5
-  intl: ^0.19.0
-  table_calendar: ^3.0.6
-  multi_select_flutter: ^4.1.2
-  rrule: ^0.2.10
-  font_awesome_flutter: ^10.3.0
-  firebase_analytics: ^11.3.5
   editable: ^2.0.0
-  url_launcher: ^6.1.10
+  enum_to_string: ^2.0.1
+  firebase_analytics: ^11.3.5
+  firebase_auth: ^5.3.3
+  firebase_core: ^3.8.0
   firebase_ui_auth: ^1.13.0
-  firebase_ui_oauth_google: ^1.0.21
   firebase_ui_localizations: ^1.13.0
+  firebase_ui_oauth_google: ^1.0.21
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_native_timezone: ^2.0.0
+  font_awesome_flutter: ^10.3.0
+  intl: ^0.19.0
+  logger: ^2.5.0
+  multi_select_flutter: ^4.1.2
+  provider: ^6.0.0
+  random_string: ^2.3.1
+  rrule: ^0.2.10
+  shared_preferences: ^2.0.15
+  table_calendar: ^3.0.6
+  timezone: ^0.10.0
+  url_launcher: ^6.1.10
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
-
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter
   intl_utils: ^2.8.3
+  lint: ^2.3.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:rrule/rrule.dart';
+import 'package:success_academy/account/data/account_model.dart';
+import 'package:success_academy/calendar/data/event_model.dart';
+import 'package:success_academy/generated/l10n.dart';
+import 'package:success_academy/profile/data/profile_model.dart';
 import 'package:timezone/timezone.dart' show TZDateTime;
-
-import '../account/data/account_model.dart';
-import '../generated/l10n.dart';
-import '../profile/data/profile_model.dart';
-import 'data/event_model.dart';
 
 String frequencyToString(BuildContext context, Frequency frequency) {
   if (frequency == Frequency.daily) {
@@ -29,8 +28,7 @@ String rruleToString(BuildContext context, RecurrenceRule? rrule) {
 
   final locale = context.select<AccountModel, String>((a) => a.locale);
 
-  StringBuffer buffer =
-      StringBuffer(frequencyToString(context, rrule.frequency));
+  final buffer = StringBuffer(frequencyToString(context, rrule.frequency));
   final until = rrule.until;
   if (until != null) {
     buffer.write(
@@ -43,17 +41,15 @@ String rruleToString(BuildContext context, RecurrenceRule? rrule) {
 List<String> buildRecurrence({
   required Frequency frequency,
   TZDateTime? until,
-}) {
-  return [
-    RecurrenceRule(frequency: frequency, until: until?.toUtc()).toString(
-      options: const RecurrenceRuleToStringOptions(isTimeUtc: true),
-    ),
-  ];
-}
+}) =>
+    [
+      RecurrenceRule(frequency: frequency, until: until?.toUtc()).toString(
+        options: const RecurrenceRuleToStringOptions(isTimeUtc: true),
+      ),
+    ];
 
-bool canEditEvents(UserType userType) {
-  return userType == UserType.admin || userType == UserType.teacher;
-}
+bool canEditEvents(UserType userType) =>
+    userType == UserType.admin || userType == UserType.teacher;
 
 List<EventType> getEventTypesCanEdit(UserType userType) {
   switch (userType) {
@@ -103,9 +99,8 @@ List<EventType> getEventTypesCanView(
   return [];
 }
 
-bool isStudentInEvent(String profileId, EventModel event) {
-  return event.studentIdList.contains(profileId);
-}
+bool isStudentInEvent(String profileId, EventModel event) =>
+    event.studentIdList.contains(profileId);
 
 bool isEventFull(EventModel event) {
   if (event.eventType == EventType.private && event.studentIdList.isNotEmpty) {
@@ -114,6 +109,5 @@ bool isEventFull(EventModel event) {
   return false;
 }
 
-bool isTeacherInEvent(String profileId, EventModel event) {
-  return event.teacherId == profileId;
-}
+bool isTeacherInEvent(String profileId, EventModel event) =>
+    event.teacherId == profileId;

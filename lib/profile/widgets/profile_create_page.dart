@@ -1,47 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:success_academy/account/data/account_model.dart';
+import 'package:success_academy/constants.dart';
+import 'package:success_academy/generated/l10n.dart';
+import 'package:success_academy/profile/data/profile_model.dart';
 import 'package:success_academy/profile/services/profile_service.dart'
     as profile_service;
 import 'package:success_academy/profile/services/purchase_service.dart'
     as stripe_service;
-
-import '../../account/data/account_model.dart';
-import '../../constants.dart';
-import '../../generated/l10n.dart';
-import '../data/profile_model.dart';
-import 'create_subscription_form.dart';
+import 'package:success_academy/profile/widgets/create_subscription_form.dart';
 
 class ProfileCreatePage extends StatelessWidget {
   const ProfileCreatePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: FilledButton.icon(
-                onPressed: () {
-                  Navigator.maybePop(context);
-                },
-                label: Text(S.of(context).goBack),
-                icon: const Icon(Icons.chevron_left),
+  Widget build(BuildContext context) => Center(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: FilledButton.icon(
+                  onPressed: () {
+                    Navigator.maybePop(context);
+                  },
+                  label: Text(S.of(context).goBack),
+                  icon: const Icon(Icons.chevron_left),
+                ),
               ),
-            ),
-            Card(
-              child: Container(
-                width: 700,
-                padding: const EdgeInsets.all(20),
-                child: const _SignupForm(),
+              Card(
+                child: Container(
+                  width: 700,
+                  padding: const EdgeInsets.all(20),
+                  child: const _SignupForm(),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }
 
 class _SignupForm extends StatefulWidget {
@@ -56,7 +53,7 @@ class _SignupFormState extends State<_SignupForm> {
   final TextEditingController _dateOfBirthController = TextEditingController();
   final StudentProfileModel _profileModel = StudentProfileModel();
   SubscriptionPlan _subscriptionPlan = SubscriptionPlan.minimum;
-  bool _isReferral = false;
+  String? _referralType;
   bool _redirectClicked = false;
 
   @override
@@ -65,8 +62,8 @@ class _SignupFormState extends State<_SignupForm> {
     _profileModel.dateOfBirth = DateTime.now();
   }
 
-  void _selectDate(BuildContext context) async {
-    final DateTime? dateOfBirth = await showDatePicker(
+  Future<void> _selectDate(BuildContext context) async {
+    final dateOfBirth = await showDatePicker(
       context: context,
       initialDate: _profileModel.dateOfBirth,
       firstDate: DateTime(1900),
@@ -153,8 +150,8 @@ class _SignupFormState extends State<_SignupForm> {
                 _subscriptionPlan = selectedSubscription!;
               });
             },
-            setIsReferral: (isReferral) {
-              _isReferral = isReferral;
+            setReferralType: (referralType) {
+              _referralType = referralType;
             },
             setReferrer: (name) {
               _profileModel.referrer = name;
@@ -164,7 +161,9 @@ class _SignupFormState extends State<_SignupForm> {
                 setState(() {
                   _redirectClicked = true;
                 });
-                _profileModel.email = account.myUser!.email;
+                _profileModel
+                  ..email = account.myUser!.email
+                  ..numPoints = 200;
                 final profileDoc = await profile_service.addStudentProfile(
                   account.firebaseUser!.uid,
                   _profileModel,
@@ -174,7 +173,7 @@ class _SignupFormState extends State<_SignupForm> {
                     userId: account.firebaseUser!.uid,
                     profileId: profileDoc.id,
                     subscriptionPlan: _subscriptionPlan,
-                    isReferral: _isReferral,
+                    referralType: _referralType,
                   );
                 } catch (err) {
                   setState(() {

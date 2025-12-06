@@ -2,12 +2,11 @@ import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:success_academy/account/data/account_model.dart';
+import 'package:success_academy/constants.dart' as constants;
 
-import '../../account/data/account_model.dart';
-import '../../constants.dart' as constants;
-
-class SignInDialog extends StatelessWidget {
-  const SignInDialog({super.key});
+class SignInForm extends StatelessWidget {
+  const SignInForm({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,8 +16,9 @@ class SignInDialog extends StatelessWidget {
       Navigator.of(context).pop();
     }
 
-    return AlertDialog(
-      content: ConstrainedBox(
+    return Card(
+      elevation: 4,
+      child: ConstrainedBox(
         constraints: const BoxConstraints(
           minWidth: 400,
           minHeight: 400,
@@ -29,7 +29,8 @@ class SignInDialog extends StatelessWidget {
           providers: [
             EmailAuthProvider(),
             GoogleProvider(
-                clientId: constants.googleAuthProviderConfigurationClientId),
+              clientId: constants.googleAuthProviderConfigurationClientId,
+            ),
           ],
         ),
       ),

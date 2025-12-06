@@ -4,9 +4,8 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:rrule/rrule.dart';
+import 'package:success_academy/generated/l10n.dart';
 import 'package:timezone/timezone.dart' show Location, TZDateTime;
-
-import '../../generated/l10n.dart';
 
 enum EventType {
   unknown,
@@ -120,7 +119,7 @@ class EventModel {
                 .toList()
             : [],
         timeZone = (json['start'] as Map)['timeZone'] as String {
-    Map<String, dynamic> extendedProperties =
+    final extendedProperties =
         (json['extendedProperties'] as Map)['shared'] as Map<String, dynamic>;
     eventType = EnumToString.fromString(
           EventType.values,
@@ -134,21 +133,19 @@ class EventModel {
     numPoints = int.tryParse(extendedProperties['numPoints'] ?? 'none') ?? 0;
   }
 
-  Map<String, Object?> toJson() {
-    return {
-      'eventId': eventId,
-      'eventType': EnumToString.convertToString(eventType),
-      'summary': summary,
-      'description': description,
-      'startTime': startTime.toIso8601String(),
-      'endTime': endTime.toIso8601String(),
-      'timeZone': timeZone,
-      'recurrence': recurrence,
-      'teacherId': teacherId,
-      'studentIdList': studentIdList,
-      'numPoints': numPoints,
-    };
-  }
+  Map<String, Object?> toJson() => {
+        'eventId': eventId,
+        'eventType': EnumToString.convertToString(eventType),
+        'summary': summary,
+        'description': description,
+        'startTime': startTime.toIso8601String(),
+        'endTime': endTime.toIso8601String(),
+        'timeZone': timeZone,
+        'recurrence': recurrence,
+        'teacherId': teacherId,
+        'studentIdList': studentIdList,
+        'numPoints': numPoints,
+      };
 
   @override
   bool operator ==(Object other) =>
@@ -159,7 +156,7 @@ class EventModel {
 }
 
 Map<DateTime, List<EventModel>> buildEventMap(Iterable<EventModel> eventList) {
-  Map<DateTime, List<EventModel>> eventMap = {};
+  final eventMap = <DateTime, List<EventModel>>{};
   for (final event in eventList) {
     eventMap
         .putIfAbsent(DateUtils.dateOnly(event.startTime), () => [])

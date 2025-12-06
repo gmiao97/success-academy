@@ -14,14 +14,12 @@ class LessonModel {
         zoomId = json['zoom_id'] as String,
         zoomPassword = json['zoom_pw'] as String;
 
-  Map<String, Object?> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'visibility': visibility,
-      'zoom_link': zoomLink,
-      'zoom_id': zoomId,
-      'zoom_pw': zoomPassword,
-    };
-  }
+  Map<String, Object?> toJson() => {
+        'id': id,
+        'name': name,
+        'visibility': visibility,
+        'zoom_link': zoomLink,
+        'zoom_id': zoomId,
+        'zoom_pw': zoomPassword,
+      };
 }

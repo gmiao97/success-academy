@@ -1,10 +1,9 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:success_academy/profile/data/profile_model.dart';
 
-import '../../profile/data/profile_model.dart';
-
-void updateLocale(String locale) async {
+Future<void> updateLocale(String locale) async {
   final prefs = await _getSharedPreferencesInstance();
   prefs?.setString('locale', locale);
 }
@@ -31,12 +30,12 @@ Future<StudentProfileModel?> loadStudentProfile({
   return null;
 }
 
-void updateStudentProfile(StudentProfileModel? studentProfile) async {
+Future<void> updateStudentProfile(StudentProfileModel? studentProfile) async {
   final prefs = await _getSharedPreferencesInstance();
   prefs?.setString('profile', jsonEncode(studentProfile?.toJson()));
 }
 
-void removeStudentProfile() async {
+Future<void> removeStudentProfile() async {
   final prefs = await _getSharedPreferencesInstance();
   prefs?.remove('profile');
 }
