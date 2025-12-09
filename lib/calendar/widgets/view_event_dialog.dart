@@ -14,6 +14,9 @@ import 'package:success_academy/profile/services/profile_service.dart'
 import 'package:timezone/data/latest_10y.dart' as tz show initializeTimeZones;
 import 'package:timezone/timezone.dart' as tz show getLocation;
 
+import 'signup_event_dialog.dart';
+import 'cancel_event_dialog.dart';
+
 class ViewEventDialog extends StatefulWidget {
   final EventModel event;
 
@@ -88,6 +91,13 @@ class _ViewEventDialogState extends State<ViewEventDialog> {
         ? RecurrenceRule.fromString(_recurrenceEvent!.recurrence[0])
         : null;
 
+    // Check if student can signup or cancel
+    final isStudent = account.userType == UserType.student;
+    final isSignedUp = isStudent &&
+        isStudentInEvent(account.studentProfile!.profileId, widget.event);
+    final isFull = isEventFull(widget.event);
+    final canSignup = isStudent && !isSignedUp && !isFull;
+
     return AlertDialog(
       actions: [
         TextButton(
@@ -96,6 +106,42 @@ class _ViewEventDialogState extends State<ViewEventDialog> {
             Navigator.of(context).pop();
           },
         ),
+        if (canSignup)
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF3B82F6),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+              showDialog(
+                context: context,
+                builder: (context) => SignupEventDialog(
+                  event: widget.event,
+                  refresh: () {},
+                ),
+              );
+            },
+            child: Text(S.of(context).signup),
+          ),
+        if (isSignedUp)
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+              showDialog(
+                context: context,
+                builder: (context) => CancelEventDialog(
+                  event: widget.event,
+                  refresh: () {},
+                ),
+              );
+            },
+            child: Text(S.of(context).cancelSignup),
+          ),
       ],
       content: ConstrainedBox(
         constraints: const BoxConstraints(
