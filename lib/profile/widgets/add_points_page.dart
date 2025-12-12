@@ -3,17 +3,17 @@ import 'package:provider/provider.dart';
 
 import '../../account/data/account_model.dart';
 import '../../generated/l10n.dart';
-import '../../profile/data/profile_model.dart';
-import '../../profile/services/purchase_service.dart' as stripe_service;
+import '../data/profile_model.dart';
+import '../services/purchase_service.dart' as stripe_service;
 
-class PointsPurchasePage extends StatefulWidget {
-  const PointsPurchasePage({super.key});
+class AddPointsPage extends StatefulWidget {
+  const AddPointsPage({super.key});
 
   @override
-  State<PointsPurchasePage> createState() => _PointsPurchasePageState();
+  State<AddPointsPage> createState() => _AddPointsPageState();
 }
 
-class _PointsPurchasePageState extends State<PointsPurchasePage> {
+class _AddPointsPageState extends State<AddPointsPage> {
   int _selectedTab = 0;
 
   @override
@@ -34,7 +34,7 @@ class _PointsPurchasePageState extends State<PointsPurchasePage> {
       ),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1100),
+          constraints: const BoxConstraints(maxWidth: 800),
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(25),
             child: Column(
@@ -300,9 +300,9 @@ class _OneTimePointsPurchaseState extends State<_OneTimePointsPurchase> {
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: widget.isMobile ? 2 : 4,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: widget.isMobile ? 1.5 : 2.2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: widget.isMobile ? 1.3 : 1.4,
             ),
             itemCount: _pointOptions.length,
             itemBuilder: (context, index) {
@@ -313,12 +313,8 @@ class _OneTimePointsPurchaseState extends State<_OneTimePointsPurchase> {
               return GestureDetector(
                 onTap: () => _onPointsChanged(option['points'] as int),
                 child: Stack(
-                  clipBehavior: Clip.none,
                   children: [
                     Container(
-                      width: double.infinity,
-                      height: double.infinity,
-                      alignment: Alignment.center,
                       decoration: BoxDecoration(
                         gradient: isSelected
                             ? const LinearGradient(
@@ -338,28 +334,25 @@ class _OneTimePointsPurchaseState extends State<_OneTimePointsPurchase> {
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
                             '⭐ ${option['points']}',
                             style: TextStyle(
-                              fontSize: widget.isMobile ? 20 : 24,
+                              fontSize: widget.isMobile ? 18 : 20,
                               fontWeight: FontWeight.w700,
                               color: isSelected ? Colors.white : const Color(0xFF333333),
                             ),
-                            textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 6),
                           Text(
                             '\$${option['price']}',
                             style: TextStyle(
-                              fontSize: widget.isMobile ? 16 : 18,
+                              fontSize: widget.isMobile ? 14 : 16,
                               fontWeight: FontWeight.w600,
                               color: isSelected
                                   ? Colors.white.withOpacity(0.9)
                                   : const Color(0xFF667EEA),
                             ),
-                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),

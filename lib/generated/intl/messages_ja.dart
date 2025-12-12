@@ -30,7 +30,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m4(cost) => "${cost} ポイントが還元されます";
 
-  static String m5(percent, cost) => "${percent}%割引 - ${cost}米ドル";
+  static String m5(percent, cost) => "20%割引ー40米ドル";
 
   static String m6(cost, balance) => "${balance} ポイントから ${cost} ポイントを使う";
 
@@ -120,11 +120,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "freeLessonZoomInfo":
             MessageLookupByLibrary.simpleMessage("フリーレッスンZOOM情報"),
         "freeNum": MessageLookupByLibrary.simpleMessage("フリーレッスン完了数"),
-        "freePoints": MessageLookupByLibrary.simpleMessage("200ポイント無料"),
         "freeSupplementaryPointSubscriptionFreeAndPrivate":
-            MessageLookupByLibrary.simpleMessage("フリー補修・1コマ153ポイント"),
+            MessageLookupByLibrary.simpleMessage("プライベートライト・1コマ153ポイント"),
         "freeSupplementaryPointSubscriptionPrivateOnly":
-            MessageLookupByLibrary.simpleMessage("フリー補修・1コマ170ポイント"),
+            MessageLookupByLibrary.simpleMessage("プライベートライト・1コマ170ポイント"),
         "freeTrial": MessageLookupByLibrary.simpleMessage("14日間無料トライアル"),
         "goBack": MessageLookupByLibrary.simpleMessage("戻る"),
         "id": MessageLookupByLibrary.simpleMessage("ID"),
@@ -139,19 +138,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "lessonInfoUpdateFailed":
             MessageLookupByLibrary.simpleMessage("更新に失敗しました"),
         "lessonInfoUpdated": MessageLookupByLibrary.simpleMessage("更新しました"),
-        "lessonRules":
-            MessageLookupByLibrary.simpleMessage("⭐️ フリーレッスンのルールと注意点 ⭐️"),
-        "lessonSignupWarning":
-            MessageLookupByLibrary.simpleMessage("レッスン開始の5分前までに予約してください"),
         "link": MessageLookupByLibrary.simpleMessage("リンク"),
         "managePayment": MessageLookupByLibrary.simpleMessage("支払い方法管理"),
         "manageProfile": MessageLookupByLibrary.simpleMessage("ユーザー管理"),
         "manageSubscription":
             MessageLookupByLibrary.simpleMessage("サブスクリプション管理"),
         "meetingId": MessageLookupByLibrary.simpleMessage("ミーテイングID"),
-        "minimumCourse": MessageLookupByLibrary.simpleMessage("フリーレッスン・月50米ドル"),
+        "minimumCourse": MessageLookupByLibrary.simpleMessage("フリーレッスン・月40米ドル"),
         "minimumPreschoolCourse":
-            MessageLookupByLibrary.simpleMessage("フリーレッスン+未就学児クラス・月60米ドル"),
+            MessageLookupByLibrary.simpleMessage("フリーレッスン+未就学児クラス・月50米ドル"),
         "monthlyCourse":
             MessageLookupByLibrary.simpleMessage("月会費のみ・月10米ドル (個別レッスンのみ)"),
         "myCode": MessageLookupByLibrary.simpleMessage("紹介コード"),
@@ -166,9 +161,9 @@ class MessageLookup extends MessageLookupByLibrary {
             "英語版フリーレッスンのみを受けたい場合は月会費のみのプランを選んでください"),
         "openLinkFailure": MessageLookupByLibrary.simpleMessage("リンクを開けませんでした"),
         "orderPointSubscriptionFreeAndPrivate":
-            MessageLookupByLibrary.simpleMessage("オーダー・1コマ252ポイント"),
+            MessageLookupByLibrary.simpleMessage("プライベートプレミアム・1コマ252ポイント"),
         "orderPointSubscriptionPrivateOnly":
-            MessageLookupByLibrary.simpleMessage("オーダー・1コマ280ポイント"),
+            MessageLookupByLibrary.simpleMessage("プライベートプレミアム・1コマ280ポイント"),
         "password": MessageLookupByLibrary.simpleMessage("パスワード"),
         "pickPlan":
             MessageLookupByLibrary.simpleMessage("サブスクリプションのコースを選択してください"),

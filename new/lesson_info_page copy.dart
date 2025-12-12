@@ -358,29 +358,25 @@ class _LessonInfoPageState extends State<LessonInfoPage> {
             children: [
               const Text('📋', style: TextStyle(fontSize: 16)),
               const SizedBox(width: 6),
-              Expanded(
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  alignment: WrapAlignment.center,
-                  children: quickRules.map((rule) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFF667EEA).withOpacity(0.2)),
-                    ),
-                    child: Text(
-                      '${rule['emoji']} ${rule['text']}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF667EEA),
+              ...quickRules.map((rule) => Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFF667EEA).withOpacity(0.2)),
+                      ),
+                      child: Text(
+                        '${rule['emoji']} ${rule['text']}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF667EEA),
+                        ),
                       ),
                     ),
-                  )).toList(),
-                ),
-              ),
+                  )),
             ],
           ),
           const SizedBox(height: 8),
