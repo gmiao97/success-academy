@@ -37,9 +37,11 @@ class _CreateSubscriptionFormState extends State<CreateSubscriptionForm> {
   final List<String> _fiftyOffReferralCodes = [];
   final List<String> _twentyOffReferralCodes = [];
   String? _referralType;
+  String? _currentReferralCode;
   bool _invalidReferral = false;
   bool _termsOfUseChecked = false;
   bool _redirectClicked = false;
+  bool _isLoadingReferralCodes = true;
 
   @override
   void initState() {
@@ -48,12 +50,53 @@ class _CreateSubscriptionFormState extends State<CreateSubscriptionForm> {
   }
 
   Future<void> _loadData() async {
-    _freeReferralCodes
-        .addAll(await referral_code_service.getFreeReferralCodes());
-    _fiftyOffReferralCodes
-        .addAll(await referral_code_service.getFiftyOffReferralCodes());
-    _twentyOffReferralCodes
-        .addAll(await referral_code_service.getTwentyOffReferralCodes());
+    // Load all lists in parallel and wait for all to complete
+    // This ensures all lists are loaded before any validation happens
+    final results = await Future.wait([
+      referral_code_service.getFreeReferralCodes(),
+      referral_code_service.getFiftyOffReferralCodes(),
+      referral_code_service.getTwentyOffReferralCodes(),
+    ]);
+
+    if (mounted) {
+      setState(() {
+        _freeReferralCodes
+          ..clear()
+          ..addAll(results[0]);
+        _fiftyOffReferralCodes
+          ..clear()
+          ..addAll(results[1]);
+        _twentyOffReferralCodes
+          ..clear()
+          ..addAll(results[2]);
+        _isLoadingReferralCodes = false;
+      });
+
+      // Re-validate the current referral code after lists are loaded
+      // This ensures consistent behavior even if user typed before lists loaded
+      if (_currentReferralCode != null && _currentReferralCode!.isNotEmpty) {
+        final account = Provider.of<AccountModel>(context, listen: false);
+        _validateReferralCode(_currentReferralCode!, account);
+      }
+    }
+  }
+
+  void _validateReferralCode(String value, AccountModel account) {
+    // Check in order: free (highest priority) -> fifty -> twenty
+    // This ensures consistent behavior regardless of load order
+    // Priority order prevents ambiguity if a code exists in multiple lists
+    if (_freeReferralCodes.contains(value)) {
+      _referralType = referralTypeFree;
+    } else if (_fiftyOffReferralCodes.contains(value)) {
+      _referralType = referralType50;
+    } else if (_twentyOffReferralCodes.contains(value) &&
+        account.myUser!.referralCode != value) {
+      _referralType = referralType20;
+    } else {
+      _referralType = null;
+    }
+    widget.setReferralType(_referralType);
+    _invalidReferral = value.isNotEmpty && _referralType == null;
   }
 
   @override
@@ -129,29 +172,36 @@ class _CreateSubscriptionFormState extends State<CreateSubscriptionForm> {
               ],
             ),
             TextFormField(
+              enabled: !_isLoadingReferralCodes,
               decoration: InputDecoration(
                 icon: const Icon(Icons.percent),
                 labelText: S.of(context).referralLabel,
                 errorText:
                     _invalidReferral ? S.of(context).referralValidation : null,
-                suffixIcon: _referralType != null
-                    ? Icon(Icons.check, color: Theme.of(context).primaryColor)
-                    : null,
+                suffixIcon: _isLoadingReferralCodes
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : _referralType != null
+                        ? Icon(Icons.check,
+                            color: Theme.of(context).primaryColor)
+                        : null,
               ),
               onChanged: (value) {
                 setState(() {
-                  if (_freeReferralCodes.contains(value)) {
-                    _referralType = referralTypeFree;
-                  } else if (_fiftyOffReferralCodes.contains(value)) {
-                    _referralType = referralType50;
-                  } else if (_twentyOffReferralCodes.contains(value) &&
-                      account.myUser!.referralCode != value) {
-                    _referralType = referralType20;
+                  _currentReferralCode = value;
+                  // Only validate if lists have finished loading
+                  // This prevents race conditions where lists aren't fully loaded
+                  if (!_isLoadingReferralCodes) {
+                    _validateReferralCode(value, account);
                   } else {
+                    // If still loading, clear the type and wait for re-validation
                     _referralType = null;
+                    widget.setReferralType(null);
+                    _invalidReferral = false;
                   }
-                  widget.setReferralType(_referralType);
-                  _invalidReferral = value.isNotEmpty && _referralType == null;
                 });
               },
             ),
